@@ -1,0 +1,247 @@
+//
+//  HuntingViewModel.swift
+//  Mosquito-finder
+//
+//  狩猎视图模型 - 连接 UI 和业务逻辑
+//
+
+import Foundation
+import Combine
+import CoreVideo
+import CoreMedia
+import UIKit
+
+/// 狩猎视图模型
+@MainActor
+class HuntingViewModel: ObservableObject {
+    
+    // MARK: - Published Properties (UI State)
+    
+    @Published var isSessionActive = false
+    @Published var currentPhase: HuntingPhase = .idle
+    @Published var trackedTargets: [TrackedTarget] = []
+    @Published var activeTarget: TrackedTarget?
+    @Published var classificationResult: ClassificationResult?
+    
+    @Published var currentZoomFactor: CGFloat = 1.0
+    @Published var isFlashlightOn = false
+    @Published var isFocusLocked = false
+    @Published var nativeImageSize: CGSize = CGSize(width: 1080, height: 1920) // 默认 1080P
+    
+    // Statistics
+    @Published var sessionDuration: String = "00:00"
+    @Published var mosquitoesFound: Int = 0
+    
+    // Error handling
+    @Published var errorMessage: String?
+    
+    // MARK: - Dependencies
+    
+    let cameraController: CameraController
+    let flashlightManager: FlashlightManager
+    let hapticsEngine: HapticsEngine
+    let motionDetector: MotionDetector
+    let stateManager: HuntingStateManager
+    let targetCoordinator: TargetCoordinator
+    
+    // MARK: - Private Properties
+    
+    private var cancellables = Set<AnyCancellable>()
+    private var sessionTimer: Timer?
+    private var lastHapticTime = Date.distantPast
+    
+    // MARK: - Init
+    
+    init() {
+        self.cameraController = CameraController()
+        self.flashlightManager = FlashlightManager()
+        self.hapticsEngine = HapticsEngine()
+        self.motionDetector = MotionDetector()
+        self.stateManager = HuntingStateManager()
+        self.targetCoordinator = TargetCoordinator()
+        
+        setupBindings()
+        setupCameraFrameHandler()
+    }
+    
+    // MARK: - Public Methods
+    
+    /// 开始狩猎会话
+    func startHunting() {
+        // 请求相机权限并启动
+        cameraController.requestAccessAndConfigure()
+        
+        // 等待配置完成后启动
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard let self = self else { return }
+            
+            self.cameraController.start()
+            self.flashlightManager.turnOn()
+            self.motionDetector.start()
+            self.stateManager.startSession()
+            
+            self.isSessionActive = true
+            self.startSessionTimer()
+        }
+    }
+    
+    /// 停止狩猎会话
+    func stopHunting() {
+        cameraController.stop()
+        flashlightManager.turnOff()
+        motionDetector.stop()
+        stateManager.endSession()
+        targetCoordinator.reset()
+        
+        isSessionActive = false
+        stopSessionTimer()
+    }
+    
+    /// 设置变焦
+    func setZoom(_ factor: CGFloat) {
+        cameraController.setZoom(factor)
+    }
+    
+    /// 切换闪光灯
+    func toggleFlashlight() {
+        flashlightManager.toggle()
+    }
+    
+    /// 锁定/解锁对焦
+    func toggleFocusLock() {
+        if isFocusLocked {
+            cameraController.unlockFocus()
+        } else {
+            cameraController.lockFocusOnCenter()
+        }
+    }
+    
+    /// 手动确认目标
+    func confirmTarget(_ target: TrackedTarget) {
+        stateManager.engageTarget(target)
+        hapticsEngine.targetEngaging()
+    }
+    
+    /// 关闭目标
+    func dismissTarget(_ target: TrackedTarget) {
+        targetCoordinator.dismissTarget(target.id)
+        hapticsEngine.targetDismissed()
+        
+        if stateManager.currentPhase == .killing || stateManager.currentPhase == .engaging {
+            stateManager.targetHandled()
+        }
+    }
+    
+    // MARK: - Private Methods
+    
+    private func setupBindings() {
+        // 相机状态
+        cameraController.$currentZoomFactor
+            .receive(on: DispatchQueue.main)
+            .assign(to: &$currentZoomFactor)
+        
+        cameraController.$isFocusLocked
+            .receive(on: DispatchQueue.main)
+            .assign(to: &$isFocusLocked)
+        
+        cameraController.$error
+            .receive(on: DispatchQueue.main)
+            .compactMap { $0?.localizedDescription }
+            .assign(to: &$errorMessage)
+        
+        // 闪光灯状态
+        flashlightManager.$isOn
+            .receive(on: DispatchQueue.main)
+            .assign(to: &$isFlashlightOn)
+        
+        // 狩猎状态
+        stateManager.$currentPhase
+            .receive(on: DispatchQueue.main)
+            .assign(to: &$currentPhase)
+        
+        stateManager.$activeTarget
+            .receive(on: DispatchQueue.main)
+            .assign(to: &$activeTarget)
+        
+        stateManager.$mosquitoesConfirmed
+            .receive(on: DispatchQueue.main)
+            .assign(to: &$mosquitoesFound)
+        
+        // 目标追踪
+        targetCoordinator.$trackedTargets
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] targets in
+                guard let self = self else { return }
+                
+                // 同步相机设备给手电筒（协助处理多摄像头切换后的 Torch 引用）
+                self.flashlightManager.updateDevice(self.cameraController.captureDevice)
+                
+                // 仅当发现新增的稳定目标，且距离上次震动超过 2.0 秒时才震动
+                let now = Date()
+                if targets.count > self.trackedTargets.count && now.timeIntervalSince(self.lastHapticTime) > 2.0 {
+                    self.hapticsEngine.suspectDetected()
+                    self.lastHapticTime = now
+                }
+                
+                self.trackedTargets = targets
+            }
+            .store(in: &cancellables)
+        
+        targetCoordinator.$currentClassification
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] result in
+                guard let self = self, let result = result else { return }
+                
+                self.classificationResult = result
+                self.stateManager.confirmClassification(result)
+                
+                if result.isMosquito {
+                    self.hapticsEngine.mosquitoConfirmed()
+                } else {
+                    self.hapticsEngine.targetDismissed()
+                }
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func setupCameraFrameHandler() {
+        cameraController.onFrameCaptured = { [weak self] sampleBuffer in
+            guard let self = self else { return }
+            
+            guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+            
+            // 首次获取原始尺寸
+            let width = CGFloat(CVPixelBufferGetWidth(pixelBuffer))
+            let height = CGFloat(CVPixelBufferGetHeight(pixelBuffer))
+            let size = CGSize(width: width, height: height)
+            
+            DispatchQueue.main.async {
+                if self.nativeImageSize != size {
+                    self.nativeImageSize = size
+                }
+            }
+            
+            // 在后台线程处理，避免阻塞主线程
+            Task(priority: .userInitiated) {
+                self.targetCoordinator.processFrame(
+                    pixelBuffer,
+                    zoomFactor: self.currentZoomFactor,
+                    isApproaching: self.motionDetector.isApproaching
+                )
+            }
+        }
+    }
+    
+    private func startSessionTimer() {
+        sessionTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            DispatchQueue.main.async {
+                self?.sessionDuration = self?.stateManager.formattedDuration ?? "00:00"
+            }
+        }
+    }
+    
+    private func stopSessionTimer() {
+        sessionTimer?.invalidate()
+        sessionTimer = nil
+    }
+}
