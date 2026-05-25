@@ -59,6 +59,19 @@ class HuntingStateManager: ObservableObject {
         activeTarget = target
         currentPhase = .engaging
     }
+
+    /// 同步当前 Stage 2 活动目标，避免状态机与追踪状态脱节
+    func syncActiveTarget(_ target: TrackedTarget?) {
+        activeTarget = target
+
+        if target != nil {
+            if currentPhase == .idle || currentPhase == .scanning {
+                currentPhase = .engaging
+            }
+        } else if currentPhase == .engaging {
+            currentPhase = .scanning
+        }
+    }
     
     /// 确认目标分类结果
     func confirmClassification(_ result: ClassificationResult) {

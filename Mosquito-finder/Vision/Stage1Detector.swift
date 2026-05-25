@@ -28,7 +28,7 @@ class Stage1Detector: ObservableObject {
     var darknessThreshold: CGFloat = 0.25
     
     /// 最小检测数量
-    var maxDetections: Int = 12
+    var maxDetections: Int = 5
     
     /// 网格扫描大小 (缩小提升精度)
     var gridSize: Int = 32
@@ -90,9 +90,12 @@ class Stage1Detector: ObservableObject {
         
         var processedCenters: [(x: Int, y: Int)] = []
         
+        // 边缘排除 margin：3倍 gridSize 避免镜头暗角假阳性
+        let edgeMargin = gridSize * 3
+        
         // 2. 超高精度采样与背景分析优化
-        for gridY in stride(from: gridSize, to: height - gridSize, by: gridSize) {
-            for gridX in stride(from: gridSize, to: width - gridSize, by: gridSize) {
+        for gridY in stride(from: edgeMargin, to: height - edgeMargin, by: gridSize) {
+            for gridX in stride(from: edgeMargin, to: width - edgeMargin, by: gridSize) {
                 
                 // 采集样本点（采样间距缩小，更适配微小目标）
                 let sampleOffsets = [
@@ -123,8 +126,8 @@ class Stage1Detector: ObservableObject {
                 // 1. 背景必须平整 (更严格的方差控制)
                 // 2. 局部对比度 (提高暗点判定置信度)
                 
-                let isSmoothBackground = bgVariance < 0.005 
-                let isLocallyDark = (bgMean - brightnessValues[0]) > 0.15 
+                let isSmoothBackground = bgVariance < 0.008  // 中间值：排除花纹/阴影背景
+                let isLocallyDark = (bgMean - brightnessValues[0]) > 0.12  // 恢复适当对比度要求
                 
                 if isSmoothBackground && isLocallyDark {
                     let centerX = CGFloat(gridX)

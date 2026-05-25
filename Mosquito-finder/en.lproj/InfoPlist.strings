@@ -1,0 +1,4 @@
+/* English InfoPlist strings */
+NSCameraUsageDescription = "Mosquito Finder uses the camera to detect and track mosquitoes in real time.";
+NSMotionUsageDescription = "Mosquito Finder uses motion sensing to detect if you are approaching a target.";
+CFBundleDisplayName = "Mosquito Finder";

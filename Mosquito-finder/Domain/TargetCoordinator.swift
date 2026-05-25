@@ -21,6 +21,8 @@ class TargetCoordinator: ObservableObject {
     @Published var trackedTargets: [TrackedTarget] = []
     @Published var currentClassification: ClassificationResult?
     @Published var isStage2Active = false
+    @Published var activeStage2Target: TrackedTarget?
+    @Published var diagnostics = VisionDiagnostics()
     
     // MARK: - Dependencies
     
@@ -33,6 +35,9 @@ class TargetCoordinator: ObservableObject {
     
     /// 屏幕尺寸，由调用者设置
     var screenSize: CGSize = CGSize(width: 390, height: 844)  // 默认值，运行时会更新
+
+    /// 是否暂停处理（发现蚊子后暂停）
+    var isPaused: Bool = false
     
     // MARK: - Private Properties
     
@@ -55,8 +60,18 @@ class TargetCoordinator: ObservableObject {
     
     /// 处理新的视频帧
     func processFrame(_ pixelBuffer: CVPixelBuffer, zoomFactor: CGFloat, isApproaching: Bool) {
+        // 发现蚊子后暂停处理
+        guard !isPaused else { return }
+        let stage1StartTime = Date()
+
         // Stage 1: 雷达扫描 - 检测暗点
         let detections = stage1Detector.detectDarkSpots(pixelBuffer: pixelBuffer)
+
+        let stage1ProcessingTime = Date().timeIntervalSince(stage1StartTime)
+        let frameSize = CGSize(
+            width: CVPixelBufferGetWidth(pixelBuffer),
+            height: CVPixelBufferGetHeight(pixelBuffer)
+        )
         
         DispatchQueue.main.async {
             self.suspectRegions = detections
@@ -64,9 +79,37 @@ class TargetCoordinator: ObservableObject {
         
         // 更新追踪
         objectTracker.update(with: detections, in: pixelBuffer)
-        
+
+        let stableTargetCount = objectTracker.stableTargets.count
+        let centerTarget = objectTracker.getTargetNearCenter(screenSize: screenSize)
+        let centerTargetDistance = centerTarget.map {
+            triggerEvaluator.distanceToCenter(target: $0, screenSize: screenSize)
+        }
+        let activeTriggers = centerTarget.map {
+            triggerEvaluator.getActiveTriggers(
+                target: $0,
+                zoomFactor: zoomFactor,
+                isApproaching: isApproaching,
+                screenSize: screenSize
+            )
+        } ?? []
+
         DispatchQueue.main.async {
-            self.trackedTargets = self.objectTracker.stableTargets
+            self.diagnostics = VisionDiagnostics(
+                frameSize: frameSize,
+                previewSize: self.screenSize,
+                stage1CandidateCount: detections.count,
+                stableTargetCount: stableTargetCount,
+                stage1ProcessingTime: stage1ProcessingTime,
+                stage2ProcessingTime: self.diagnostics.stage2ProcessingTime,
+                currentZoomFactor: zoomFactor,
+                isApproaching: isApproaching,
+                isStage2Active: self.isStage2Active,
+                centerTargetDistance: centerTargetDistance,
+                activeTriggers: activeTriggers,
+                lastClassification: self.diagnostics.lastClassification,
+                lastUpdated: Date()
+            )
         }
         
         // 检查是否需要触发 Stage 2
@@ -92,6 +135,9 @@ class TargetCoordinator: ObservableObject {
         objectTracker.removeTarget(id)
         
         DispatchQueue.main.async {
+            if self.activeStage2Target?.id == id {
+                self.activeStage2Target = nil
+            }
             self.trackedTargets = self.objectTracker.trackedTargets
             if self.isStage2Active {
                 self.isStage2Active = false
@@ -101,6 +147,7 @@ class TargetCoordinator: ObservableObject {
     
     /// 重置所有状态
     func reset() {
+        isPaused = false
         objectTracker.reset()
         
         DispatchQueue.main.async {
@@ -108,6 +155,7 @@ class TargetCoordinator: ObservableObject {
             self.trackedTargets = []
             self.currentClassification = nil
             self.isStage2Active = false
+            self.activeStage2Target = nil
         }
     }
     
@@ -118,7 +166,17 @@ class TargetCoordinator: ObservableObject {
         objectTracker.$trackedTargets
             .receive(on: DispatchQueue.main)
             .sink { [weak self] targets in
-                self?.trackedTargets = targets
+                guard let self = self else { return }
+
+                self.trackedTargets = targets.filter { $0.isStable }
+
+                if let activeID = self.activeStage2Target?.id {
+                    if let refreshedTarget = targets.first(where: { $0.id == activeID }) {
+                        self.activeStage2Target = refreshedTarget
+                    } else if !self.isStage2Active {
+                        self.activeStage2Target = nil
+                    }
+                }
             }
             .store(in: &cancellables)
     }
@@ -153,6 +211,7 @@ class TargetCoordinator: ObservableObject {
         DispatchQueue.main.async {
             self.isStage2Active = true
             self.updateTargetState(target.id, state: .engaging)
+            self.activeStage2Target = self.objectTracker.trackedTargets.first(where: { $0.id == target.id }) ?? target
         }
         
         // 执行分类
@@ -160,6 +219,14 @@ class TargetCoordinator: ObservableObject {
         
         DispatchQueue.main.async {
             self.currentClassification = result
+            self.activeStage2Target = self.objectTracker.trackedTargets.first(where: { $0.id == target.id }) ?? self.activeStage2Target
+
+            var updatedDiagnostics = self.diagnostics
+            updatedDiagnostics.stage2ProcessingTime = result.processingTime
+            updatedDiagnostics.isStage2Active = false
+            updatedDiagnostics.lastClassification = result
+            updatedDiagnostics.lastUpdated = Date()
+            self.diagnostics = updatedDiagnostics
             
             // 更新目标状态
             let newState: TargetState = result.isMosquito ? .confirmed : .dismissed

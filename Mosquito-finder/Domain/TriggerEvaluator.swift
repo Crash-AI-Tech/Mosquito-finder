@@ -14,13 +14,13 @@ struct TriggerEvaluator {
     // MARK: - Configuration
     
     /// 触发 Stage 2 的最小变焦倍数
-    var minZoomFactor: CGFloat = 3.0
+    var minZoomFactor: CGFloat = 1.5
     
     /// 中心区域半径（相对于屏幕短边的比例）
-    var centerRegionRatio: CGFloat = 0.25
+    var centerRegionRatio: CGFloat = 0.20
     
     /// 触发 Stage 2 的最小目标尺寸（像素）
-    var minTargetSize: CGFloat = 50
+    var minTargetSize: CGFloat = 15
     
     // MARK: - Public Methods
     
@@ -34,17 +34,17 @@ struct TriggerEvaluator {
         // 条件 1: 目标在屏幕中心区域
         let isInCenter = isTargetInCenter(target: target, screenSize: screenSize)
         
-        // 条件 2: 变焦足够大
+        // 条件 2: 变焦足够大（minZoomFactor=1.5，需要手动拉近）
         let isZoomedIn = zoomFactor >= minZoomFactor
         
         // 条件 3: 用户正在靠近
         let approaching = isApproaching
         
-        // 条件 4: 目标尺寸足够大
-        let isBigEnough = target.size.width >= minTargetSize && target.size.height >= minTargetSize
+        // 条件 4: 目标尺寸足够大（Stage1 框约 22px，阈值 15px）
+        let isBigEnough = target.size.width >= minTargetSize || target.size.height >= minTargetSize
         
-        // 满足任一条件 + 目标尺寸足够大 = 触发 Stage 2
-        let triggerConditionMet = isInCenter || isZoomedIn || approaching
+        // 必须变焦 OR 正在靠近，并且在中心区域，才触发 Stage 2
+        let triggerConditionMet = isInCenter && (isZoomedIn || approaching)
         
         return triggerConditionMet && isBigEnough
     }

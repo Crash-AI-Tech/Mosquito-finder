@@ -12,28 +12,45 @@ struct TargetOverlayView: View {
     let targets: [TrackedTarget]
     let activeTarget: TrackedTarget?
     let classificationResult: ClassificationResult?
-    let imageSize: CGSize // 原始像素尺寸 (如 1080x1920)
+    let imageSize: CGSize // 原始像素尺寸 (如 1920x1080 横屏 或 1080x1920 竖屏)
     
     var body: some View {
         GeometryReader { geometry in
             let screenSize = geometry.size
             
-            // 计算 AspectFill 缩放比例和偏移
-            let scaleW = screenSize.width / imageSize.width
-            let scaleH = screenSize.height / imageSize.height
-            let scale = max(scaleW, scaleH)
+            // 如果 buffer 是横屏（w > h），需要将坐标旋转到竖屏显示空间
+            let isLandscape = imageSize.width > imageSize.height
+            // 显示尺寸始终是竖屏
+            let displaySize = isLandscape
+                ? CGSize(width: imageSize.height, height: imageSize.width)
+                : imageSize
             
-            let offsetX = (imageSize.width * scale - screenSize.width) / 2
-            let offsetY = (imageSize.height * scale - screenSize.height) / 2
+            // AspectFill 缩放
+            let scaleW = screenSize.width / displaySize.width
+            let scaleH = screenSize.height / displaySize.height
+            let scale = max(scaleW, scaleH)
+            let offsetX = (displaySize.width * scale - screenSize.width) / 2
+            let offsetY = (displaySize.height * scale - screenSize.height) / 2
             
             ForEach(targets) { target in
-                // 转换边界框为屏幕坐标
                 let pixelBox = target.boundingBox
+                
+                // 横屏 buffer：90° CCW 旋转到竖屏显示坐标
+                // landscape(x,y,w,h) in W×H → portrait(y, W-x-w, h, w) in H×W
+                let displayBox: CGRect = isLandscape
+                    ? CGRect(
+                        x: pixelBox.origin.y,
+                        y: imageSize.width - pixelBox.origin.x - pixelBox.width,
+                        width: pixelBox.height,
+                        height: pixelBox.width
+                      )
+                    : pixelBox
+                
                 let screenBox = CGRect(
-                    x: pixelBox.origin.x * scale - offsetX,
-                    y: pixelBox.origin.y * scale - offsetY,
-                    width: pixelBox.width * scale,
-                    height: pixelBox.height * scale
+                    x: displayBox.origin.x * scale - offsetX,
+                    y: displayBox.origin.y * scale - offsetY,
+                    width: displayBox.width * scale,
+                    height: displayBox.height * scale
                 )
                 
                 TargetBoundingBoxView(

@@ -1,0 +1,4 @@
+/* Chinese (Simplified) InfoPlist strings */
+NSCameraUsageDescription = "猎蚊者需要使用相机来扫描墙面并检测蚊子。";
+NSMotionUsageDescription = "猎蚊者需要检测您的移动来判断是否正在靠近目标。";
+CFBundleDisplayName = "猎蚊者";

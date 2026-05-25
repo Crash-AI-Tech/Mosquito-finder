@@ -27,6 +27,9 @@ class CameraController: NSObject, ObservableObject {
     /// 视频帧回调
     var onFrameCaptured: ((CMSampleBuffer) -> Void)?
     
+    /// 最新一帧（用于截图）
+    private(set) var latestPixelBuffer: CVPixelBuffer?
+    
     // MARK: - Private Properties
     
     public private(set) var captureDevice: AVCaptureDevice?
@@ -142,8 +145,7 @@ class CameraController: NSObject, ObservableObject {
     }
     
     /// 解锁对焦（恢复自动对焦）
-    func unlockFocus() {
-        guard let device = captureDevice else { return }
+    func unlockFocus() {        guard let device = captureDevice else { return }
         
         do {
             try device.lockForConfiguration()
@@ -160,6 +162,20 @@ class CameraController: NSObject, ObservableObject {
         } catch {
             print("对焦解锁失败: \(error)")
         }
+    }
+
+    /// 抓取当前帧快照（用于冻结画面）
+    /// 自动根据 buffer 尺寸选择方向：横屏 buffer → .right（显示为竖屏），竖屏 → .up
+    func captureSnapshot() -> UIImage? {
+        guard let pixelBuffer = latestPixelBuffer else { return nil }
+        let w = CVPixelBufferGetWidth(pixelBuffer)
+        let h = CVPixelBufferGetHeight(pixelBuffer)
+        // 横屏 buffer (w > h)：orientation .right 让 UIImage 以竖屏方向显示
+        let orientation: UIImage.Orientation = w > h ? .right : .up
+        let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
+        let context = CIContext(options: [.useSoftwareRenderer: false])
+        guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else { return nil }
+        return UIImage(cgImage: cgImage, scale: 1.0, orientation: orientation)
     }
     
     // MARK: - Private Methods
@@ -248,6 +264,10 @@ extension CameraController: AVCaptureVideoDataOutputSampleBufferDelegate {
         didOutput sampleBuffer: CMSampleBuffer,
         from connection: AVCaptureConnection
     ) {
+        // 保存最新帧供截图使用
+        if let pb = CMSampleBufferGetImageBuffer(sampleBuffer) {
+            latestPixelBuffer = pb
+        }
         onFrameCaptured?(sampleBuffer)
     }
 }

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 import CoreGraphics
 
 // MARK: - Stage 1 Output
@@ -95,9 +96,9 @@ struct TrackedTarget: Identifiable, Equatable {
         boundingBox.size
     }
     
-    /// 目标是否稳定（至少持续出现 2 帧，Phase 2 提速）
+    /// 目标是否稳定（至少持续出现 5 帧 ≈ 0.5s，减少噪点误报）
     var isStable: Bool {
-        detectedFrameCount >= 2
+        detectedFrameCount >= 5
     }
     
     /// 是否足够大以触发 Stage 2
@@ -148,11 +149,60 @@ enum HuntingPhase: String, CaseIterable {
     
     var displayName: String {
         switch self {
-        case .idle: return "准备中"
-        case .scanning: return "搜索中"
-        case .engaging: return "锁定中"
-        case .killing: return "已发现!"
+        case .idle:     return NSLocalizedString("Ready",     comment: "Hunting phase: idle")
+        case .scanning: return NSLocalizedString("Scanning",  comment: "Hunting phase: scanning")
+        case .engaging: return NSLocalizedString("Targeting", comment: "Hunting phase: engaging")
+        case .killing:  return NSLocalizedString("Found!",    comment: "Hunting phase: mosquito confirmed")
         }
+    }
+
+    var localizedKey: LocalizedStringKey {
+        switch self {
+        case .idle:     return "Ready"
+        case .scanning: return "Scanning"
+        case .engaging: return "Targeting"
+        case .killing:  return "Found!"
+        }
+    }
+}
+
+// MARK: - Vision Diagnostics
+
+/// Phase A/B 使用的视觉链路诊断数据
+struct VisionDiagnostics {
+    var frameSize: CGSize = .zero
+    var previewSize: CGSize = .zero
+    var stage1CandidateCount: Int = 0
+    var stableTargetCount: Int = 0
+    var stage1ProcessingTime: TimeInterval = 0
+    var stage2ProcessingTime: TimeInterval = 0
+    var currentZoomFactor: CGFloat = 1.0
+    var isApproaching = false
+    var isStage2Active = false
+    var centerTargetDistance: CGFloat?
+    var activeTriggers: [String] = []
+    var lastClassification: ClassificationResult?
+    var lastUpdated = Date()
+
+    var hasMeasurements: Bool {
+        frameSize != .zero || stage1CandidateCount > 0 || stableTargetCount > 0 || lastClassification != nil
+    }
+
+    var stage1TimingText: String {
+        String(format: "%.0fms", stage1ProcessingTime * 1000)
+    }
+
+    var stage2TimingText: String {
+        stage2ProcessingTime > 0 ? String(format: "%.0fms", stage2ProcessingTime * 1000) : "--"
+    }
+
+    var centerDistanceText: String {
+        guard let centerTargetDistance else { return "--" }
+        return String(format: "%.0fpx", centerTargetDistance)
+    }
+
+    var triggerText: String {
+        activeTriggers.isEmpty ? "--" : activeTriggers.joined(separator: "|")
     }
 }
 

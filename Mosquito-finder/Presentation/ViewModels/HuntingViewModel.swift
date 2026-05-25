@@ -22,6 +22,12 @@ class HuntingViewModel: ObservableObject {
     @Published var trackedTargets: [TrackedTarget] = []
     @Published var activeTarget: TrackedTarget?
     @Published var classificationResult: ClassificationResult?
+    @Published var diagnostics = VisionDiagnostics()
+
+    /// 发现蚊子时的冻结帧
+    @Published var frozenFrame: UIImage?
+    /// 冻结帧中蛊子的边界框（像素坐标）
+    @Published var frozenTargetRect: CGRect?
     
     @Published var currentZoomFactor: CGFloat = 1.0
     @Published var isFlashlightOn = false
@@ -76,7 +82,6 @@ class HuntingViewModel: ObservableObject {
             guard let self = self else { return }
             
             self.cameraController.start()
-            self.flashlightManager.turnOn()
             self.motionDetector.start()
             self.stateManager.startSession()
             
@@ -101,6 +106,12 @@ class HuntingViewModel: ObservableObject {
     func setZoom(_ factor: CGFloat) {
         cameraController.setZoom(factor)
     }
+
+    /// 同步相机预览尺寸，用于统一触发器和覆盖层坐标系
+    func updatePreviewSize(_ size: CGSize) {
+        guard size.width > 0, size.height > 0 else { return }
+        targetCoordinator.screenSize = size
+    }
     
     /// 切换闪光灯
     func toggleFlashlight() {
@@ -122,14 +133,25 @@ class HuntingViewModel: ObservableObject {
         hapticsEngine.targetEngaging()
     }
     
-    /// 关闭目标
+    /// 关闭目标（点击已处理）
     func dismissTarget(_ target: TrackedTarget) {
         targetCoordinator.dismissTarget(target.id)
         hapticsEngine.targetDismissed()
-        
+        frozenFrame = nil
+        frozenTargetRect = nil
+        targetCoordinator.isPaused = false
         if stateManager.currentPhase == .killing || stateManager.currentPhase == .engaging {
             stateManager.targetHandled()
         }
+    }
+
+    /// 点击已处理（无需 target 对象）
+    func dismissCurrentMosquito() {
+        hapticsEngine.targetDismissed()
+        frozenFrame = nil
+        frozenTargetRect = nil
+        targetCoordinator.isPaused = false
+        stateManager.targetHandled()
     }
     
     // MARK: - Private Methods
@@ -158,6 +180,20 @@ class HuntingViewModel: ObservableObject {
         stateManager.$currentPhase
             .receive(on: DispatchQueue.main)
             .assign(to: &$currentPhase)
+
+        // 进入 killing 阶段时：冻结处理 + 抓屏
+        stateManager.$currentPhase
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] phase in
+                guard let self = self else { return }
+                if phase == .killing && self.frozenFrame == nil {
+                    self.targetCoordinator.isPaused = true
+                    self.frozenFrame = self.cameraController.captureSnapshot()
+                    // 直接从 stateManager 读取，避免 Combine 时序问题
+                    self.frozenTargetRect = self.stateManager.activeTarget?.boundingBox
+                }
+            }
+            .store(in: &cancellables)
         
         stateManager.$activeTarget
             .receive(on: DispatchQueue.main)
@@ -184,6 +220,19 @@ class HuntingViewModel: ObservableObject {
                 }
                 
                 self.trackedTargets = targets
+
+                if let activeID = self.activeTarget?.id,
+                   let refreshedTarget = targets.first(where: { $0.id == activeID }) {
+                    self.stateManager.syncActiveTarget(refreshedTarget)
+                }
+            }
+            .store(in: &cancellables)
+
+        targetCoordinator.$activeStage2Target
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] target in
+                guard let self = self else { return }
+                self.stateManager.syncActiveTarget(target)
             }
             .store(in: &cancellables)
         
@@ -202,6 +251,10 @@ class HuntingViewModel: ObservableObject {
                 }
             }
             .store(in: &cancellables)
+
+            targetCoordinator.$diagnostics
+                .receive(on: DispatchQueue.main)
+                .assign(to: &$diagnostics)
     }
     
     private func setupCameraFrameHandler() {
@@ -221,14 +274,15 @@ class HuntingViewModel: ObservableObject {
                 }
             }
             
-            // 在后台线程处理，避免阻塞主线程
-            Task(priority: .userInitiated) {
-                self.targetCoordinator.processFrame(
-                    pixelBuffer,
-                    zoomFactor: self.currentZoomFactor,
-                    isApproaching: self.motionDetector.isApproaching
-                )
-            }
+            // 手机抖动时跳过分析（减少误报，节省电量）
+            if self.motionDetector.isShaking { return }
+            
+            // 直接在相机串行回调队列处理，避免并发帧导致的追踪与状态错乱
+            self.targetCoordinator.processFrame(
+                pixelBuffer,
+                zoomFactor: self.currentZoomFactor,
+                isApproaching: self.motionDetector.isApproaching
+            )
         }
     }
     

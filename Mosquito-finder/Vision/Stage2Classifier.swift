@@ -25,7 +25,7 @@ class Stage2Classifier: ObservableObject {
     // MARK: - Configuration
     
     /// 置信度阈值
-    var confidenceThreshold: Float = 0.7
+    var confidenceThreshold: Float = 0.80  // 提高锈值降低假阳性
     
     /// ROI 区域大小（相对于屏幕中心）
     var roiSize: CGSize = CGSize(width: 224, height: 224)
@@ -61,12 +61,16 @@ class Stage2Classifier: ObservableObject {
         let imageWidth = CGFloat(CVPixelBufferGetWidth(pixelBuffer))
         let imageHeight = CGFloat(CVPixelBufferGetHeight(pixelBuffer))
         
-        // 转换为归一化坐标
+        // Vision 坐标系原点在左下角，需要翻转 Y 轴
+        let nw = region.width / imageWidth
+        let nh = region.height / imageHeight
+        let nx = region.origin.x / imageWidth
+        let ny = 1.0 - (region.origin.y / imageHeight) - nh  // Y 轴翻转
         let normalizedRegion = CGRect(
-            x: region.origin.x / imageWidth,
-            y: region.origin.y / imageHeight,
-            width: region.width / imageWidth,
-            height: region.height / imageHeight
+            x: max(0, min(1 - nw, nx)),
+            y: max(0, min(1 - nh, ny)),
+            width: max(0.01, nw),
+            height: max(0.01, nh)
         )
         
         let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, options: [:])
@@ -97,13 +101,6 @@ class Stage2Classifier: ObservableObject {
     
     /// 加载 CoreML 模型
     func loadModel() {
-        // 尝试加载自定义蚊子识别模型
-        // 如果模型不存在，将使用模拟模式
-        
-        // 在实际项目中，这里会加载一个训练好的 .mlmodel 文件
-        // 例如：MosquitoClassifier.mlmodel
-        
-        /*
         do {
             let config = MLModelConfiguration()
             config.computeUnits = .all
@@ -124,10 +121,6 @@ class Stage2Classifier: ObservableObject {
             print("模型加载失败: \(error)")
             isModelLoaded = false
         }
-        */
-        
-        // 暂时使用 Vision 内置模型进行物体识别
-        setupFallbackClassifier()
     }
     
     // MARK: - Private Methods
@@ -139,9 +132,11 @@ class Stage2Classifier: ObservableObject {
         isModelLoaded = false
     }
     
-    /// 模拟分类（用于演示和测试）
-    /// 基于区域特征进行启发式判断
+    /// 模拟分类（模型未加载时后备）
+    /// 直接返回 false 避免误报——无模型时不应判断为蚊子
     private func simulateClassification(region: CGRect, in pixelBuffer: CVPixelBuffer) -> ClassificationResult {
+        return ClassificationResult(isMosquito: false, confidence: 0, processingTime: 0)
+        // --- 以下旧启发式代码保留但不执行 ---
         // 获取区域的像素特征
         let features = extractRegionFeatures(region: region, from: pixelBuffer)
         
