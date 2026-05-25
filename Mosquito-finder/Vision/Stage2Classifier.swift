@@ -25,7 +25,7 @@ class Stage2Classifier: ObservableObject {
     // MARK: - Configuration
     
     /// 置信度阈值
-    var confidenceThreshold: Float = 0.80  // 提高锈值降低假阳性
+    var confidenceThreshold: Float = 0.90  // 提高阈值降低假阳性
     
     /// ROI 区域大小（相对于屏幕中心）
     var roiSize: CGSize = CGSize(width: 224, height: 224)

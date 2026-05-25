@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- App Store Connect 分发 -->
+    <key>method</key>
+    <string>app-store-connect</string>
+
+    <!-- 你的 Team ID -->
+    <key>teamID</key>
+    <string>B8NT2MYY9R</string>
+
+    <!-- 允许自动申请 Provisioning Profile（需登录 Xcode 账号） -->
+    <key>signingStyle</key>
+    <string>automatic</string>
+
+    <!-- 上传到 App Store Connect（不仅仅是导出 IPA） -->
+    <key>uploadBitcode</key>
+    <false/>
+    <key>uploadSymbols</key>
+    <true/>
+
+    <!-- 仅支持 iPhone（与项目的 TARGETED_DEVICE_FAMILY 保持一致） -->
+    <key>destination</key>
+    <string>upload</string>
+</dict>
+</plist>

@@ -98,7 +98,7 @@ struct TrackedTarget: Identifiable, Equatable {
     
     /// 目标是否稳定（至少持续出现 5 帧 ≈ 0.5s，减少噪点误报）
     var isStable: Bool {
-        detectedFrameCount >= 5
+        detectedFrameCount >= 4  // 4 帧 @ 10fps ≈ 0.4s，平衡响应速度与抖动抑制
     }
     
     /// 是否足够大以触发 Stage 2

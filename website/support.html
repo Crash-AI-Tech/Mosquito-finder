@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Support — Mosquito Finder</title>
+  <meta name="description" content="Mosquito Finder Support — tips, FAQ, and how to get the best results detecting mosquitoes with your iPhone." />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="scan-overlay"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-logo" href="index.html">&#x25CE; Mosquito Finder</a>
+    <div class="nav-links">
+      <a href="index.html#how-it-works">How It Works</a>
+      <a href="support.html">Support</a>
+      <a href="privacy.html">Privacy</a>
+    </div>
+  </div>
+</nav>
+
+<!-- CONTENT -->
+<main style="padding: 64px 24px 96px;">
+  <div class="prose">
+    <h1>Support</h1>
+    <p class="meta">MOSQUITO FINDER &nbsp;·&nbsp; 猎蚊者</p>
+
+    <!-- TIPS -->
+    <h2>Tips for Best Results</h2>
+    <ul>
+      <li><strong>Use on light-colored surfaces.</strong> White walls, ceilings, and light curtains give the best contrast. Dark or heavily patterned backgrounds increase false positives.</li>
+      <li><strong>Keep the flashlight on.</strong> The app auto-enables it. Low light is where the detector shines.</li>
+      <li><strong>Move slowly.</strong> Quick phone movements trigger the anti-shake guard and pause detection. Slow, deliberate sweeps give Stage 1 time to find candidates.</li>
+      <li><strong>Zoom in to confirm.</strong> Once you see a yellow halo, move closer or use the zoom slider to reach 1.5× or more. Stage 2 classification only triggers when the target is centered and large enough.</li>
+      <li><strong>Stay steady for 0.4 seconds.</strong> A target needs to remain stable for ~4 frames before Stage 2 triggers. Hold your phone still on the target.</li>
+    </ul>
+
+    <!-- FAQ -->
+    <h2>Frequently Asked Questions</h2>
+
+    <div class="faq">
+      <div class="faq-item">
+        <p class="faq-q">I don't see any yellow boxes at all.</p>
+        <p class="faq-a">Make sure you're scanning a light-colored, relatively uniform background (white wall works best). Start at ~1× zoom and sweep slowly. The detector looks for small dark spots against a light background — very dark or textured surfaces will suppress detection.</p>
+      </div>
+      <div class="faq-item">
+        <p class="faq-q">I see yellow boxes but never get a red confirmation box.</p>
+        <p class="faq-a">To trigger Stage 2: (1) center the yellow box in the crosshair, (2) zoom to at least 1.5× or move closer so the target occupies a larger area, (3) hold steady for about half a second. All three conditions must be met.</p>
+      </div>
+      <div class="faq-item">
+        <p class="faq-q">The app shows yellow boxes on things that aren't mosquitoes (dust, shadows, etc.).</p>
+        <p class="faq-a">Stage 1 is intentionally high-recall — it marks anything that <em>could</em> be a mosquito. Only Stage 2 (zoom-in confirmation) is the actual classification. False yellow halos are normal and expected; false <em>red</em> boxes should be rare.</p>
+      </div>
+      <div class="faq-item">
+        <p class="faq-q">The detection pauses whenever I move the phone.</p>
+        <p class="faq-a">This is the anti-shake guard working as intended. Rapid phone movement (walking, repositioning) temporarily pauses detection to prevent false triggers. It resumes automatically once the phone is steady.</p>
+      </div>
+      <div class="faq-item">
+        <p class="faq-q">Does the app work in the dark without the flashlight?</p>
+        <p class="faq-a">The flashlight is required for reliable detection. The Stage 1 algorithm relies on having enough illumination to distinguish a dark mosquito from the background. Without the flashlight in a dark room, detection accuracy degrades significantly.</p>
+      </div>
+      <div class="faq-item">
+        <p class="faq-q">Can the app detect mosquitoes in flight?</p>
+        <p class="faq-a">The current version is optimized for <strong>stationary mosquitoes</strong> on surfaces (walls, ceilings, curtains). Flying mosquitoes move too fast and unpredictably for reliable detection with the current pipeline.</p>
+      </div>
+      <div class="faq-item">
+        <p class="faq-q">Does it use internet / does it upload camera images?</p>
+        <p class="faq-a">No. Mosquito Finder is completely offline. No data ever leaves your device. See the <a href="privacy.html">Privacy Policy</a> for full details.</p>
+      </div>
+      <div class="faq-item">
+        <p class="faq-q">Which iPhone models are supported?</p>
+        <p class="faq-a">Any iPhone running iOS 17 or later. Newer devices with A-series chips (A15+) give slightly better CoreML performance, but all modern iPhones are fully supported.</p>
+      </div>
+      <div class="faq-item">
+        <p class="faq-q">How do I switch language between English and Chinese?</p>
+        <p class="faq-a">On the home/launch screen, tap the language toggle button in the top-left corner (shows "EN" or "中") to switch instantly.</p>
+      </div>
+    </div>
+
+    <!-- FAQ Chinese -->
+    <span class="lang-tag" style="margin-top: 56px;">中文 · FAQ</span>
+
+    <div class="faq">
+      <div class="faq-item">
+        <p class="faq-q">看不到任何黄色方框</p>
+        <p class="faq-a">请确保对着浅色、纹理较均匀的背景（白墙效果最好）。从 1× 变焦开始，缓慢扫动手机。检测器专门寻找浅色背景上的小黑点——背景颜色越深或纹理越复杂，检测效果越差。</p>
+      </div>
+      <div class="faq-item">
+        <p class="faq-q">有黄框但不出现红框确认</p>
+        <p class="faq-a">触发第二阶段需同时满足：① 将黄框居中到准星范围内；② 放大至 1.5× 以上，或靠近使目标占更大面积；③ 保持手机稳定约半秒。三个条件同时满足才会触发红框。</p>
+      </div>
+      <div class="faq-item">
+        <p class="faq-q">灰尘、阴影等也出现黄框</p>
+        <p class="faq-a">第一阶段设计为高召回率——只要有可能是蚊子的深色点都会被标出。黄框误报是正常现象，真正的确认（红框）才是实际分类结果，误报率极低。</p>
+      </div>
+      <div class="faq-item">
+        <p class="faq-q">手机一移动检测就暂停</p>
+        <p class="faq-a">这是防抖机制正常工作。快速晃动会暂停检测以减少误报，手机稳定后自动恢复。</p>
+      </div>
+      <div class="faq-item">
+        <p class="faq-q">会上传摄像头图像吗？</p>
+        <p class="faq-a">不会。本应用完全离线运行，不进行任何网络连接，不上传任何数据。详见<a href="privacy.html">隐私政策</a>。</p>
+      </div>
+    </div>
+
+    <!-- CONTACT -->
+    <div class="contact-card">
+      <h3>Still need help?</h3>
+      <p>Send us an email and we'll get back to you as soon as possible.<br/>
+      还有问题？发送邮件，我们会尽快回复。</p>
+      <!-- Replace with your real email address -->
+      <a class="btn-outline" href="mailto:your-email@example.com">Contact Support</a>
+    </div>
+
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="support.html">Support</a>
+      <a href="privacy.html">Privacy Policy</a>
+    </div>
+    <p class="footer-copy">© 2026 Mosquito Finder &nbsp;·&nbsp; All rights reserved</p>
+  </div>
+</footer>
+
+</body>
+</html>

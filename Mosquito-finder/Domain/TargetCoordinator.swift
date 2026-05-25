@@ -81,16 +81,18 @@ class TargetCoordinator: ObservableObject {
         objectTracker.update(with: detections, in: pixelBuffer)
 
         let stableTargetCount = objectTracker.stableTargets.count
-        let centerTarget = objectTracker.getTargetNearCenter(screenSize: screenSize)
+        // 关键修复：用缓冲区尺寸（像素坐标）而非屏幕尺寸（点坐标）做中心判断
+        // 屏幕中心约(195,422)pts ≠ 缓冲区中心(540,960)px，混用导致红框始终在左上角
+        let centerTarget = objectTracker.getTargetNearCenter(screenSize: frameSize)
         let centerTargetDistance = centerTarget.map {
-            triggerEvaluator.distanceToCenter(target: $0, screenSize: screenSize)
+            triggerEvaluator.distanceToCenter(target: $0, screenSize: frameSize)
         }
         let activeTriggers = centerTarget.map {
             triggerEvaluator.getActiveTriggers(
                 target: $0,
                 zoomFactor: zoomFactor,
                 isApproaching: isApproaching,
-                screenSize: screenSize
+                screenSize: frameSize
             )
         } ?? []
 
@@ -113,7 +115,7 @@ class TargetCoordinator: ObservableObject {
         }
         
         // 检查是否需要触发 Stage 2
-        checkStage2Trigger(pixelBuffer: pixelBuffer, zoomFactor: zoomFactor, isApproaching: isApproaching)
+        checkStage2Trigger(pixelBuffer: pixelBuffer, frameSize: frameSize, zoomFactor: zoomFactor, isApproaching: isApproaching)
     }
     
     /// 手动触发 Stage 2 分类
@@ -181,23 +183,26 @@ class TargetCoordinator: ObservableObject {
             .store(in: &cancellables)
     }
     
-    private func checkStage2Trigger(pixelBuffer: CVPixelBuffer, zoomFactor: CGFloat, isApproaching: Bool) {
+    private func checkStage2Trigger(pixelBuffer: CVPixelBuffer, frameSize: CGSize, zoomFactor: CGFloat, isApproaching: Bool) {
         // 检查冷却时间
         if let lastTime = lastStage2Time, Date().timeIntervalSince(lastTime) < stage2Cooldown {
             return
         }
         
-        // 获取中心附近的目标
-        guard let centerTarget = objectTracker.getTargetNearCenter(screenSize: screenSize) else {
+        // 获取缓冲区中心附近的稳定目标
+        // centerRadius 与 TriggerEvaluator.centerRegionRatio 保持一致，避免漏选
+        let centerRadius = min(frameSize.width, frameSize.height) * CGFloat(triggerEvaluator.centerRegionRatio)
+        guard let centerTarget = objectTracker.getTargetNearCenter(screenSize: frameSize, centerRadius: centerRadius),
+              centerTarget.isStable else {
             return
         }
         
-        // 评估触发条件
+        // 评估触发条件（使用 frameSize = buffer 像素坐标系）
         let shouldTrigger = triggerEvaluator.shouldActivateStage2(
             target: centerTarget,
             zoomFactor: zoomFactor,
             isApproaching: isApproaching,
-            screenSize: screenSize
+            screenSize: frameSize
         )
         
         if shouldTrigger {

@@ -126,8 +126,8 @@ class Stage1Detector: ObservableObject {
                 // 1. 背景必须平整 (更严格的方差控制)
                 // 2. 局部对比度 (提高暗点判定置信度)
                 
-                let isSmoothBackground = bgVariance < 0.008  // 中间值：排除花纹/阴影背景
-                let isLocallyDark = (bgMean - brightnessValues[0]) > 0.12  // 恢复适当对比度要求
+                let isSmoothBackground = bgVariance < 0.015  // 放宽方差限制，适应室内背景
+                let isLocallyDark = (bgMean - brightnessValues[0]) > 0.08  // 放宽对比度阈值
                 
                 if isSmoothBackground && isLocallyDark {
                     let centerX = CGFloat(gridX)
