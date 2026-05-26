@@ -37,9 +37,6 @@ struct TriggerEvaluator {
         // 条件 2: 变焦足够大（minZoomFactor=1.5，需要手动拉近）
         let isZoomedIn = zoomFactor >= minZoomFactor
         
-        // 条件 3: 用户正在靠近
-        let approaching = isApproaching
-        
         // 条件 4: 目标尺寸足够大（Stage1 框约 22px，阈值 15px）
         let isBigEnough = target.size.width >= minTargetSize || target.size.height >= minTargetSize
         

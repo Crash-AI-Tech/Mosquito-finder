@@ -136,50 +136,6 @@ class Stage2Classifier: ObservableObject {
     /// 直接返回 false 避免误报——无模型时不应判断为蚊子
     private func simulateClassification(region: CGRect, in pixelBuffer: CVPixelBuffer) -> ClassificationResult {
         return ClassificationResult(isMosquito: false, confidence: 0, processingTime: 0)
-        // --- 以下旧启发式代码保留但不执行 ---
-        // 获取区域的像素特征
-        let features = extractRegionFeatures(region: region, from: pixelBuffer)
-        
-        // 启发式规则判断
-        // 蚊子特征：
-        // 1. 区域较小 (10-200 像素)
-        // 2. 暗色为主
-        // 3. 轮廓不规则（非圆形、非正方形）
-        
-        var score: Float = 0.5
-        
-        // 大小评分
-        let area = region.width * region.height
-        if area > 50 && area < 500 {
-            score += 0.15
-        }
-        
-        // 长宽比评分（蚊子略长）
-        let aspectRatio = region.width / region.height
-        if aspectRatio > 0.5 && aspectRatio < 2.0 {
-            score += 0.1
-        }
-        
-        // 暗度评分
-        if features.averageBrightness < 0.4 {
-            score += 0.15
-        }
-        
-        // 对比度评分
-        if features.contrast > 0.3 {
-            score += 0.1
-        }
-        
-        let isMosquito = score >= confidenceThreshold
-        
-        let result = ClassificationResult(
-            isMosquito: isMosquito,
-            confidence: min(score, 0.99),
-            processingTime: 0.01
-        )
-        
-        lastResult = result
-        return result
     }
     
     /// 提取区域特征
