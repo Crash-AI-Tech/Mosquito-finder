@@ -55,23 +55,35 @@ class CameraController: NSObject, ObservableObject {
     // MARK: - Public Methods
     
     /// 请求相机权限并配置
-    func requestAccessAndConfigure() {
+    func requestAccessAndConfigure(completion: ((Bool) -> Void)? = nil) {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
-            sessionQueue.async { self.configureSession() }
+            sessionQueue.async {
+                let success = self.configureSession()
+                DispatchQueue.main.async {
+                    completion?(success)
+                }
+            }
         case .notDetermined:
             AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
                 if granted {
-                    self?.sessionQueue.async { self?.configureSession() }
+                    self?.sessionQueue.async {
+                        let success = self?.configureSession() ?? false
+                        DispatchQueue.main.async {
+                            completion?(success)
+                        }
+                    }
                 } else {
                     DispatchQueue.main.async {
                         self?.error = .accessDenied
+                        completion?(false)
                     }
                 }
             }
         default:
             DispatchQueue.main.async {
                 self.error = .accessDenied
+                completion?(false)
             }
         }
     }
@@ -180,8 +192,8 @@ class CameraController: NSObject, ObservableObject {
     
     // MARK: - Private Methods
     
-    private func configureSession() {
-        guard !isConfigured else { return }
+    private func configureSession() -> Bool {
+        guard !isConfigured else { return true }
         
         captureSession.beginConfiguration()
         captureSession.sessionPreset = .hd1920x1080
@@ -205,7 +217,7 @@ class CameraController: NSObject, ObservableObject {
                 self.error = .deviceNotFound
             }
             captureSession.commitConfiguration()
-            return
+            return false
         }
         
         self.captureDevice = device
@@ -228,7 +240,7 @@ class CameraController: NSObject, ObservableObject {
                 self.error = .configurationFailed(error.localizedDescription)
             }
             captureSession.commitConfiguration()
-            return
+            return false
         }
         
         // 2. 添加视频输出
@@ -253,6 +265,7 @@ class CameraController: NSObject, ObservableObject {
         
         captureSession.commitConfiguration()
         isConfigured = true
+        return true
     }
 }
 

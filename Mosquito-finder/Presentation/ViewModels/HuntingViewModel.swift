@@ -74,17 +74,14 @@ class HuntingViewModel: ObservableObject {
     
     /// 开始狩猎会话
     func startHunting() {
-        // 请求相机权限并启动
-        cameraController.requestAccessAndConfigure()
-        
-        // 等待配置完成后启动
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            guard let self = self else { return }
-            
+        // 请求相机权限并在配置完成后启动，避免固定延迟导致的假启动和卡顿
+        cameraController.requestAccessAndConfigure { [weak self] success in
+            guard let self = self, success else { return }
+
             self.cameraController.start()
             self.motionDetector.start()
             self.stateManager.startSession()
-            
+
             self.isSessionActive = true
             self.startSessionTimer()
         }

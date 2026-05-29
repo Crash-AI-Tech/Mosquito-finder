@@ -37,9 +37,7 @@ class Stage2Classifier: ObservableObject {
     
     // MARK: - Init
     
-    init() {
-        loadModel()
-    }
+    init() {}
     
     // MARK: - Public Methods
     
@@ -50,6 +48,10 @@ class Stage2Classifier: ObservableObject {
         defer {
             isProcessing = false
             lastProcessingTime = Date().timeIntervalSince(startTime)
+        }
+
+        if !isModelLoaded {
+            loadModel()
         }
         
         // 如果没有模型，使用模拟检测
