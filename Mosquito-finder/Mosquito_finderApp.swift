@@ -12,7 +12,7 @@ struct Mosquito_finderApp: App {
     
     var body: some Scene {
         WindowGroup {
-            HuntingView()
+            MainTabView()
         }
     }
 }

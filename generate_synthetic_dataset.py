@@ -126,10 +126,45 @@ def augment_image(img_path, base_filename):
     path_b = os.path.join(OUTPUT_DIR, base_filename.replace(".jpg", "_varB_lowlight.jpg"))
     img_b_low.save(path_b, "JPEG")
     
-    # Variant C: Blur (Simulate camera focus drift or light hand motion blur)
-    img_blur = img.filter(ImageFilter.GaussianBlur(radius=1.5))
-    path_c = os.path.join(OUTPUT_DIR, base_filename.replace(".jpg", "_varC_blur.jpg"))
-    img_blur.save(path_c, "JPEG")
+    # Variant C: Real World Mosquito Simulation (Tiny dark spot with 3D drop shadow)
+    # This simulates a mosquito illuminated by a flashlight, casting a tiny shadow
+    img_sim = img.convert("RGBA")
+    sim_width, sim_height = img_sim.size
+    
+    # Create a clean white/gray background to overlay the fake dot on
+    bg = Image.new("RGBA", (sim_width, sim_height), (230, 230, 230, 255))
+    
+    # Create the "mosquito" (a small 5x5 to 10x10 dark blob)
+    dot_size = random.randint(4, 8)
+    shadow_offset_x = random.randint(2, 6) # Flashlight from side
+    shadow_offset_y = random.randint(2, 6)
+    
+    import ImageDraw
+    draw = ImageDraw.Draw(bg)
+    
+    center_x = random.randint(30, sim_width - 30)
+    center_y = random.randint(30, sim_height - 30)
+    
+    # Draw faint shadow first
+    draw.ellipse([center_x + shadow_offset_x - dot_size/2, 
+                  center_y + shadow_offset_y - dot_size/2, 
+                  center_x + shadow_offset_x + dot_size/2, 
+                  center_y + shadow_offset_y + dot_size/2], 
+                 fill=(50, 50, 50, 100))
+    
+    # Draw core body
+    draw.ellipse([center_x - dot_size/2, 
+                  center_y - dot_size/2, 
+                  center_x + dot_size/2, 
+                  center_y + dot_size/2], 
+                 fill=(10, 10, 10, 255))
+    
+    # Composite over original heavily blurred image (to simulate out-of-focus background)
+    blurred_base = img.filter(ImageFilter.GaussianBlur(radius=5)).convert("RGBA")
+    final_sim = Image.alpha_composite(blurred_base, bg).convert("RGB")
+    
+    path_c = os.path.join(OUTPUT_DIR, base_filename.replace(".jpg", "_varC_3dshadow.jpg"))
+    final_sim.save(path_c, "JPEG")
     
     # Variant D: Noise (Simulate camera high-ISO digital noise)
     img_noise = img.convert("RGB")
