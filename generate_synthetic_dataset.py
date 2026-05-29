@@ -139,7 +139,7 @@ def augment_image(img_path, base_filename):
     shadow_offset_x = random.randint(2, 6) # Flashlight from side
     shadow_offset_y = random.randint(2, 6)
     
-    import ImageDraw
+    from PIL import ImageDraw
     draw = ImageDraw.Draw(bg)
     
     center_x = random.randint(30, sim_width - 30)

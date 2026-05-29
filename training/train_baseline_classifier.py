@@ -127,7 +127,6 @@ def main() -> None:
             probabilities,
             predictions,
             truths,
-            strict=True,
         ):
             prediction_rows.append(
                 {

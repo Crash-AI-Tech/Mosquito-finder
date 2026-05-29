@@ -89,7 +89,7 @@ def train_pipeline(records: list[dict], size: tuple[int, int]) -> Pipeline:
     pipe = Pipeline(
         [
             ("scaler", StandardScaler()),
-            ("pca", PCA(n_components=n_pca, random_state=42)),
+            ("pca", PCA(n_components=n_pca, random_state=42, svd_solver="full")),
             ("lr", LogisticRegression(
                 class_weight={0: 1.0, 1: 1.5},
                 max_iter=4000,

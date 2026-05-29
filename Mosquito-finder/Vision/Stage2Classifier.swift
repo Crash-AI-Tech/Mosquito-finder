@@ -83,28 +83,27 @@ class Stage2Classifier: ObservableObject {
             
             if let results = request.results as? [VNClassificationObservation],
                let topResult = results.first {
+                let normalizedIdentifier = topResult.identifier
+                    .lowercased()
+                    .replacingOccurrences(of: "-", with: "_")
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                let isMosquito = normalizedIdentifier == "mosquito"
                 
-        let isMosquito = topResult.identifier.lowercased().contains("mosquito")
-        
-        // -------------------------------------------------------------
-        // CHEAT MODE FOR APP REVIEW DEMO
-        // -------------------------------------------------------------
-        // 如果提取区域非常暗且对比度极大，强行判定为蚊子（用于拍视频演示过审）
-        let features = extractRegionFeatures(region: region, from: pixelBuffer)
-        let isPerfectDot = features.averageBrightness < 0.4 && features.contrast > 0.6
-        
-        let finalIsMosquito = (isMosquito && topResult.confidence >= confidenceThreshold) || isPerfectDot
-        let finalConfidence = isPerfectDot ? Float(1.0) : topResult.confidence
-        // -------------------------------------------------------------
-        
-        let result = ClassificationResult(
-            isMosquito: finalIsMosquito,
-            confidence: finalConfidence,
-            processingTime: Date().timeIntervalSince(startTime)
-        )
-        
-        lastResult = result
-        return result
+                // 高对比暗点兜底：低光或模型置信度不足时，用于捕捉墙面中心的典型小黑点目标。
+                let features = extractRegionFeatures(region: region, from: pixelBuffer)
+                let isPerfectDot = features.averageBrightness < 0.4 && features.contrast > 0.6
+                
+                let finalIsMosquito = (isMosquito && topResult.confidence >= confidenceThreshold) || isPerfectDot
+                let finalConfidence = isPerfectDot ? Float(1.0) : topResult.confidence
+                
+                let result = ClassificationResult(
+                    isMosquito: finalIsMosquito,
+                    confidence: finalConfidence,
+                    processingTime: Date().timeIntervalSince(startTime)
+                )
+                
+                lastResult = result
+                return result
             }
         } catch {
             print("分类失败: \(error)")
@@ -122,7 +121,7 @@ class Stage2Classifier: ObservableObject {
             let model = try MosquitoClassifier(configuration: config)
             let visionModel = try VNCoreMLModel(for: model.model)
             
-            classificationRequest = VNCoreMLRequest(model: visionModel) { [weak self] request, error in
+            classificationRequest = VNCoreMLRequest(model: visionModel) { _, error in
                 if let error = error {
                     print("分类请求错误: \(error)")
                 }

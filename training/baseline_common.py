@@ -270,7 +270,7 @@ def make_baseline_pipeline(
     return Pipeline(
         steps=[
             ("scaler", StandardScaler()),
-            ("pca", PCA(n_components=pca_components, random_state=random_state)),
+            ("pca", PCA(n_components=pca_components, random_state=random_state, svd_solver="full")),
             (
                 "classifier",
                 LogisticRegression(
