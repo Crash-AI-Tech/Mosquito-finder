@@ -2,6 +2,17 @@ import SwiftUI
 
 struct MainTabView: View {
     @State private var selectedTab = 0
+    @AppStorage("appLanguage") private var appLanguage: String = ""
+
+    private var currentLocale: Locale {
+        switch appLanguage {
+        case "en": return Locale(identifier: "en_US")
+        case "zh-Hans": return Locale(identifier: "zh-Hans")
+        default:
+            let code = Locale.current.language.languageCode?.identifier ?? "en"
+            return code.hasPrefix("zh") ? Locale(identifier: "zh-Hans") : Locale(identifier: "en_US")
+        }
+    }
     
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -31,6 +42,7 @@ struct MainTabView: View {
         }
         .tint(.red)
         .preferredColorScheme(.dark)
+        .environment(\.locale, currentLocale)
     }
 }
 
@@ -55,6 +67,7 @@ struct SettingsView: View {
     @AppStorage("enableHaptics") private var enableHaptics = true
     @AppStorage("radarSensitivity") private var radarSensitivity = 0.5
     @AppStorage("autoFlashlight") private var autoFlashlight = true
+    @AppStorage("appLanguage") private var appLanguage: String = ""
 
     var body: some View {
         NavigationView {
@@ -64,6 +77,14 @@ struct SettingsView: View {
                     VStack(alignment: .leading) {
                         Text("Radar Sensitivity")
                         Slider(value: $radarSensitivity, in: 0...1)
+                    }
+                }
+
+                Section(header: Text("Language")) {
+                    Picker("App Language", selection: $appLanguage) {
+                        Text("Follow System").tag("")
+                        Text("English").tag("en")
+                        Text("Simplified Chinese").tag("zh-Hans")
                     }
                 }
                 

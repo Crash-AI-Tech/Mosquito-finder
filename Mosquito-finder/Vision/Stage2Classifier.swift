@@ -25,7 +25,7 @@ class Stage2Classifier: ObservableObject {
     // MARK: - Configuration
     
     /// 置信度阈值
-    var confidenceThreshold: Float = 0.90  // 提高阈值降低假阳性
+    var confidenceThreshold: Float = 0.55
     
     /// ROI 区域大小（相对于屏幕中心）
     var roiSize: CGSize = CGSize(width: 224, height: 224)
@@ -89,12 +89,16 @@ class Stage2Classifier: ObservableObject {
                     .trimmingCharacters(in: .whitespacesAndNewlines)
                 let isMosquito = normalizedIdentifier == "mosquito"
                 
-                // 高对比暗点兜底：低光或模型置信度不足时，用于捕捉墙面中心的典型小黑点目标。
+                // 高对比暗点兜底：低光或模型置信度不足时，用于捕捉墙面或图片上的典型蚊子暗部。
                 let features = extractRegionFeatures(region: region, from: pixelBuffer)
-                let isPerfectDot = features.averageBrightness < 0.4 && features.contrast > 0.6
+                let isDarkTarget = features.minBrightness < 0.30
+                    && features.contrast > 0.22
+                    && features.darkPixelRatio > 0.015
+                    && features.darkPixelRatio < 0.75
                 
-                let finalIsMosquito = (isMosquito && topResult.confidence >= confidenceThreshold) || isPerfectDot
-                let finalConfidence = isPerfectDot ? Float(1.0) : topResult.confidence
+                let modelAccepted = isMosquito && topResult.confidence >= confidenceThreshold
+                let finalIsMosquito = modelAccepted || isDarkTarget
+                let finalConfidence = isDarkTarget ? max(Float(0.82), topResult.confidence) : topResult.confidence
                 
                 let result = ClassificationResult(
                     isMosquito: finalIsMosquito,
@@ -157,7 +161,7 @@ class Stage2Classifier: ObservableObject {
         defer { CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly) }
         
         guard let baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer) else {
-            return RegionFeatures(averageBrightness: 0.5, contrast: 0.5)
+            return RegionFeatures(averageBrightness: 0.5, minBrightness: 0.5, contrast: 0, darkPixelRatio: 0)
         }
         
         let width = CVPixelBufferGetWidth(pixelBuffer)
@@ -176,6 +180,7 @@ class Stage2Classifier: ObservableObject {
         var minBrightness: Float = 1
         var maxBrightness: Float = 0
         var pixelCount: Float = 0
+        var darkPixelCount: Float = 0
         
         let buffer = baseAddress.assumingMemoryBound(to: UInt8.self)
         
@@ -192,14 +197,23 @@ class Stage2Classifier: ObservableObject {
                 totalBrightness += brightness
                 minBrightness = min(minBrightness, brightness)
                 maxBrightness = max(maxBrightness, brightness)
+                if brightness < 0.35 {
+                    darkPixelCount += 1
+                }
                 pixelCount += 1
             }
         }
         
         let averageBrightness = pixelCount > 0 ? totalBrightness / pixelCount : 0.5
         let contrast = maxBrightness - minBrightness
-        
-        return RegionFeatures(averageBrightness: averageBrightness, contrast: contrast)
+        let darkPixelRatio = pixelCount > 0 ? darkPixelCount / pixelCount : 0
+
+        return RegionFeatures(
+            averageBrightness: averageBrightness,
+            minBrightness: minBrightness,
+            contrast: contrast,
+            darkPixelRatio: darkPixelRatio
+        )
     }
 }
 
@@ -207,5 +221,7 @@ class Stage2Classifier: ObservableObject {
 
 struct RegionFeatures {
     let averageBrightness: Float
+    let minBrightness: Float
     let contrast: Float
+    let darkPixelRatio: Float
 }

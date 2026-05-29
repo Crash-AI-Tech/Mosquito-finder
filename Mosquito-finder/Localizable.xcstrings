@@ -82,7 +82,17 @@
         }
       }
     },
-    "EN": {},
+    "EN": {
+      "comment": "Language toggle button when Chinese is active",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EN"
+          }
+        }
+      }
+    },
     "End": {
       "comment": "End the hunting session",
       "localizations": {
@@ -261,9 +271,39 @@
         }
       }
     },
-    "中": {},
-    "发现蚊子！": {},
-    "目标锁定": {},
+    "中": {
+      "comment": "Language toggle button when English is active",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中"
+          }
+        }
+      }
+    },
+    "发现蚊子！": {
+      "comment": "Manual Chinese mosquito found label",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发现蚊子！"
+          }
+        }
+      }
+    },
+    "目标锁定": {
+      "comment": "Manual Chinese target locked label",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标锁定"
+          }
+        }
+      }
+    },
     "Radar": {
       "comment": "Tab title for radar camera screen",
       "localizations": {
@@ -403,6 +443,61 @@
           "stringUnit": {
             "state": "translated",
             "value": "版本"
+          }
+        }
+      }
+    },
+    "Language": {
+      "comment": "Section header for language settings",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语言"
+          }
+        }
+      }
+    },
+    "App Language": {
+      "comment": "Picker title for app language",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用语言"
+          }
+        }
+      }
+    },
+    "Follow System": {
+      "comment": "Language option that follows system locale",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跟随系统"
+          }
+        }
+      }
+    },
+    "English": {
+      "comment": "English language option",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "英文"
+          }
+        }
+      }
+    },
+    "Simplified Chinese": {
+      "comment": "Simplified Chinese language option",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "简体中文"
           }
         }
       }

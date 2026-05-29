@@ -96,9 +96,9 @@ struct TrackedTarget: Identifiable, Equatable {
         boundingBox.size
     }
     
-    /// 目标是否稳定（至少持续出现 5 帧 ≈ 0.5s，减少噪点误报）
+    /// 目标是否稳定（至少持续出现 2 帧，优先保证用户测试时能快速进入确认）
     var isStable: Bool {
-        detectedFrameCount >= 4  // 4 帧 @ 10fps ≈ 0.4s，平衡响应速度与抖动抑制
+        detectedFrameCount >= 2
     }
     
     /// 是否足够大以触发 Stage 2
