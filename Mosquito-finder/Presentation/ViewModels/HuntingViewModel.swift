@@ -49,6 +49,7 @@ class HuntingViewModel: ObservableObject {
     let motionDetector: MotionDetector
     let stateManager: HuntingStateManager
     let targetCoordinator: TargetCoordinator
+    let statsStore: HuntingStatsStore
     
     // MARK: - Private Properties
     
@@ -65,6 +66,7 @@ class HuntingViewModel: ObservableObject {
         self.motionDetector = MotionDetector()
         self.stateManager = HuntingStateManager()
         self.targetCoordinator = TargetCoordinator()
+        self.statsStore = HuntingStatsStore.shared
         
         setupBindings()
         setupCameraFrameHandler()
@@ -81,6 +83,7 @@ class HuntingViewModel: ObservableObject {
             self.cameraController.start()
             self.motionDetector.start()
             self.stateManager.startSession()
+            self.statsStore.beginSession()
 
             self.isSessionActive = true
             self.startSessionTimer()
@@ -89,10 +92,18 @@ class HuntingViewModel: ObservableObject {
     
     /// 停止狩猎会话
     func stopHunting() {
+        let suspectsFound = stateManager.totalSuspectsFound
+        let confirmedMosquitoes = stateManager.mosquitoesConfirmed
+        let modelMode = RuntimeDetectionSettings.current.modelMode
         cameraController.stop()
         flashlightManager.turnOff()
         motionDetector.stop()
         stateManager.endSession()
+        statsStore.endSession(
+            suspectsFound: suspectsFound,
+            confirmedMosquitoes: confirmedMosquitoes,
+            modelMode: modelMode
+        )
         targetCoordinator.reset()
         
         isSessionActive = false
@@ -244,6 +255,10 @@ class HuntingViewModel: ObservableObject {
                 self.stateManager.confirmClassification(result)
                 
                 if result.isMosquito {
+                    self.statsStore.recordMosquito(
+                        confidence: result.confidence,
+                        modelMode: RuntimeDetectionSettings.current.modelMode
+                    )
                     self.hapticsEngine.mosquitoConfirmed()
                 } else {
                     self.hapticsEngine.targetDismissed()

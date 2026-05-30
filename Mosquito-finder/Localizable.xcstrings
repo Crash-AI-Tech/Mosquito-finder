@@ -1,48 +1,86 @@
 {
   "sourceLanguage": "en",
   "strings": {
-    "· VISION LINK ·": {
-      "comment": "Camera link status label",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "· 视觉链路 ·"
-          }
-        }
-      }
-    },
     "%lld": {},
-    "×%lld": {},
-    "🎯 Zoom in to confirm mosquito": {
-      "comment": "Start screen hint 3",
+    "%lld suspects": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "🎯 靠近或变焦确认蚊子"
+            "value": "%lld 个可疑目标"
           }
         }
       }
     },
-    "📍 Scan walls for suspicious targets": {
-      "comment": "Start screen hint 2",
+    "About": {
+      "comment": "Section header for app information",
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "📍 扫描墙面寻找可疑目标"
+            "value": "关于"
           }
         }
       }
     },
-    "🔦 Flashlight, focus lock & zoom": {
-      "comment": "Start screen hint 1",
+    "App Language": {
+      "comment": "Picker title for app language",
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "🔦 手电筒、对焦锁定与变焦"
+            "value": "应用语言"
+          }
+        }
+      }
+    },
+    "Auto Flashlight": {
+      "comment": "Toggle for automatic flashlight",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自动手电筒"
+          }
+        }
+      }
+    },
+    "Balanced CoreML mode is faster to confirm targets.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平衡 CoreML 模式确认速度更快。"
+          }
+        }
+      }
+    },
+    "Balanced Preset": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平衡预设"
+          }
+        }
+      }
+    },
+    "Begin Mission": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始任务"
+          }
+        }
+      }
+    },
+    "Best Confidence": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最高置信度"
           }
         }
       }
@@ -59,6 +97,36 @@
         }
       }
     },
+    "Center Region": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中心区域"
+          }
+        }
+      }
+    },
+    "Center the halo and hold steady.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将光环居中并保持稳定。"
+          }
+        }
+      }
+    },
+    "Cleared": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已排除"
+          }
+        }
+      }
+    },
     "Confidence: %@": {
       "comment": "Confidence percentage in found alert",
       "extractionState": "stale",
@@ -67,6 +135,87 @@
           "stringUnit": {
             "state": "translated",
             "value": "置信度：%@"
+          }
+        }
+      }
+    },
+    "Confirm": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认"
+          }
+        }
+      }
+    },
+    "Confirmed Targets": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认目标"
+          }
+        }
+      }
+    },
+    "Confirming...": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认中..."
+          }
+        }
+      }
+    },
+    "CoreML Balanced": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CoreML 平衡模式"
+          }
+        }
+      }
+    },
+    "CoreML Strict": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CoreML 严格模式"
+          }
+        }
+      }
+    },
+    "D-FINE Detector": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "D-FINE 检测器"
+          }
+        }
+      }
+    },
+    "D-FINE is kept as a research path and is not enabled until accuracy improves.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "D-FINE 保留为研究路线，准确率提升前不开放测试。"
+          }
+        }
+      }
+    },
+    "Detection Settings": {
+      "comment": "Section header for detection settings",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检测设置"
           }
         }
       }
@@ -104,6 +253,17 @@
         }
       }
     },
+    "English": {
+      "comment": "English language option",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "英语"
+          }
+        }
+      }
+    },
     "Error: %@": {
       "comment": "Runtime error message",
       "localizations": {
@@ -115,6 +275,27 @@
         }
       }
     },
+    "Feedback": {
+      "comment": "Section header for feedback settings",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "反馈"
+          }
+        }
+      }
+    },
+    "Finish": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "处理"
+          }
+        }
+      }
+    },
     "Focus": {
       "comment": "Focus lock button label",
       "localizations": {
@@ -122,6 +303,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "对焦"
+          }
+        }
+      }
+    },
+    "Follow System": {
+      "comment": "Language option that follows system locale",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跟随系统"
+          }
+        }
+      }
+    },
+    "Found!": {
+      "comment": "Hunting phase: mosquito confirmed",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已发现！"
           }
         }
       }
@@ -138,13 +341,65 @@
         }
       }
     },
-    "Found!": {
-      "comment": "Hunting phase: mosquito confirmed",
+    "Haptic Feedback": {
+      "comment": "Toggle for haptic feedback",
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已发现！"
+            "value": "触觉反馈"
+          }
+        }
+      }
+    },
+    "Hunting History": {
+      "comment": "Section header for hunting history",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "狩猎记录"
+          }
+        }
+      }
+    },
+    "Installed": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已安装"
+          }
+        }
+      }
+    },
+    "Keep the target inside the reticle.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "让目标保持在准星内。"
+          }
+        }
+      }
+    },
+    "Language": {
+      "comment": "Section header for language settings",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语言"
+          }
+        }
+      }
+    },
+    "Learn the lock-on flow before the first hunt.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第一次狩猎前，先熟悉锁定流程。"
           }
         }
       }
@@ -160,13 +415,12 @@
         }
       }
     },
-    "Mosquito Finder": {
-      "comment": "App name shown on start screen",
+    "Lock": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "猎蚊者"
+            "value": "锁定"
           }
         }
       }
@@ -178,6 +432,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "发现蚊子"
+          }
+        }
+      }
+    },
+    "Min Target Size": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最小目标尺寸"
+          }
+        }
+      }
+    },
+    "Min Zoom": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最小变焦"
+          }
+        }
+      }
+    },
+    "Mission Briefing": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "任务简报"
+          }
+        }
+      }
+    },
+    "Mission system ready.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "任务系统就绪。"
+          }
+        }
+      }
+    },
+    "Model": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模型"
+          }
+        }
+      }
+    },
+    "Model Availability": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模型可用性"
+          }
+        }
+      }
+    },
+    "Mosquito Finder": {
+      "comment": "App name shown on start screen",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "猎蚊者"
           }
         }
       }
@@ -194,6 +519,79 @@
         }
       }
     },
+    "Mosquito!": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "蚊子!"
+          }
+        }
+      }
+    },
+    "Needs training": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要继续训练"
+          }
+        }
+      }
+    },
+    "No confirmed targets yet.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有确认目标。"
+          }
+        }
+      }
+    },
+    "No records yet. Start hunting!": {
+      "comment": "Empty state for hunting history",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无记录，开始狩猎吧！"
+          }
+        }
+      }
+    },
+    "Not installed": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未安装"
+          }
+        }
+      }
+    },
+    "Radar": {
+      "comment": "Tab title for radar camera screen",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "雷达"
+          }
+        }
+      }
+    },
+    "Radar Sensitivity": {
+      "comment": "Slider label for radar sensitivity",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "雷达灵敏度"
+          }
+        }
+      }
+    },
     "Ready": {
       "comment": "Hunting phase: idle",
       "localizations": {
@@ -201,6 +599,56 @@
           "stringUnit": {
             "state": "translated",
             "value": "就绪"
+          }
+        }
+      }
+    },
+    "Recent Hunts": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近狩猎"
+          }
+        }
+      }
+    },
+    "Recommended": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "推荐"
+          }
+        }
+      }
+    },
+    "Red lock means confirmed. Finish the target.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "红色锁定代表已确认，处理目标。"
+          }
+        }
+      }
+    },
+    "Runtime Model": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "运行模型"
+          }
+        }
+      }
+    },
+    "Scan": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫描"
           }
         }
       }
@@ -216,6 +664,78 @@
         }
       }
     },
+    "Settings": {
+      "comment": "Tab title and navigation title for settings screen",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置"
+          }
+        }
+      }
+    },
+    "Simplified Chinese": {
+      "comment": "Simplified Chinese language option",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "简体中文"
+          }
+        }
+      }
+    },
+    "Skip": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跳过"
+          }
+        }
+      }
+    },
+    "Stable Frames: %lld": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "稳定帧数：%lld"
+          }
+        }
+      }
+    },
+    "Stage 1 Contrast": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一阶段对比度"
+          }
+        }
+      }
+    },
+    "Stage 1 Max Candidates: %lld": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一阶段最大候选：%lld"
+          }
+        }
+      }
+    },
+    "Stage 2 Confidence": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "二阶段置信度"
+          }
+        }
+      }
+    },
     "Start Hunting": {
       "comment": "Primary CTA button on start screen",
       "localizations": {
@@ -223,6 +743,56 @@
           "stringUnit": {
             "state": "translated",
             "value": "开始狩猎"
+          }
+        }
+      }
+    },
+    "Strict CoreML mode minimizes false positives.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "严格 CoreML 模式优先降低误报。"
+          }
+        }
+      }
+    },
+    "Strict Preset": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "严格预设"
+          }
+        }
+      }
+    },
+    "Suspicious": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可疑"
+          }
+        }
+      }
+    },
+    "Sweep slowly across walls and corners.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "缓慢扫过墙面和角落。"
+          }
+        }
+      }
+    },
+    "Sweep walls and corners slowly.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "缓慢扫描墙面和角落。"
           }
         }
       }
@@ -238,6 +808,27 @@
         }
       }
     },
+    "THREAT DETECTION SYSTEM": {
+      "comment": "Start screen subtitle",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "威胁检测系统"
+          }
+        }
+      }
+    },
+    "Target confirmed. Finish it.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标已确认，处理它。"
+          }
+        }
+      }
+    },
     "Targeting": {
       "comment": "Hunting phase: engaging",
       "localizations": {
@@ -249,13 +840,105 @@
         }
       }
     },
-    "THREAT DETECTION SYSTEM": {
-      "comment": "Start screen subtitle",
+    "Total Hunts": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "威胁检测系统"
+            "value": "累计狩猎"
+          }
+        }
+      }
+    },
+    "Total Mosquitoes": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "累计蚊子"
+          }
+        }
+      }
+    },
+    "Total Time": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "累计时长"
+          }
+        }
+      }
+    },
+    "Trophies": {
+      "comment": "Navigation title for trophies screen",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "战绩"
+          }
+        }
+      }
+    },
+    "Trophy": {
+      "comment": "Tab title for trophies screen",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "战绩"
+          }
+        }
+      }
+    },
+    "Version": {
+      "comment": "App version row title",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "版本"
+          }
+        }
+      }
+    },
+    "YOLOX Detector": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "YOLOX 检测器"
+          }
+        }
+      }
+    },
+    "YOLOX High Precision Preset": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "YOLOX 高精度预设"
+          }
+        }
+      }
+    },
+    "YOLOX detector is bundled and uses the best current mosquito detector.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "YOLOX 检测器已内置，是当前效果最好的蚊子检测模型。"
+          }
+        }
+      }
+    },
+    "Zoom in or move closer until lock turns red.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放大或靠近，直到锁定变红。"
           }
         }
       }
@@ -271,6 +954,18 @@
         }
       }
     },
+    "· VISION LINK ·": {
+      "comment": "Camera link status label",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "· 视觉链路 ·"
+          }
+        }
+      }
+    },
+    "×%lld": {},
     "中": {
       "comment": "Language toggle button when English is active",
       "localizations": {
@@ -304,200 +999,35 @@
         }
       }
     },
-    "Radar": {
-      "comment": "Tab title for radar camera screen",
+    "🎯 Zoom in to confirm mosquito": {
+      "comment": "Start screen hint 3",
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "雷达"
+            "value": "🎯 放大确认蚊子"
           }
         }
       }
     },
-    "Trophy": {
-      "comment": "Tab title for trophies screen",
+    "📍 Scan walls for suspicious targets": {
+      "comment": "Start screen hint 2",
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "战绩"
+            "value": "📍 扫描墙面寻找可疑目标"
           }
         }
       }
     },
-    "Settings": {
-      "comment": "Tab title and navigation title for settings screen",
+    "🔦 Flashlight, focus lock & zoom": {
+      "comment": "Start screen hint 1",
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "设置"
-          }
-        }
-      }
-    },
-    "Hunting History": {
-      "comment": "Section header for hunting history",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "狩猎记录"
-          }
-        }
-      }
-    },
-    "No records yet. Start hunting!": {
-      "comment": "Empty state for hunting history",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暂无记录，开始狩猎吧！"
-          }
-        }
-      }
-    },
-    "Trophies": {
-      "comment": "Navigation title for trophies screen",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "战绩"
-          }
-        }
-      }
-    },
-    "Detection Settings": {
-      "comment": "Section header for detection settings",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "检测设置"
-          }
-        }
-      }
-    },
-    "Auto Flashlight": {
-      "comment": "Toggle for automatic flashlight",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "自动手电筒"
-          }
-        }
-      }
-    },
-    "Radar Sensitivity": {
-      "comment": "Slider label for radar sensitivity",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "雷达灵敏度"
-          }
-        }
-      }
-    },
-    "Feedback": {
-      "comment": "Section header for feedback settings",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "反馈"
-          }
-        }
-      }
-    },
-    "Haptic Feedback": {
-      "comment": "Toggle for haptic feedback",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "触觉反馈"
-          }
-        }
-      }
-    },
-    "About": {
-      "comment": "Section header for app information",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "关于"
-          }
-        }
-      }
-    },
-    "Version": {
-      "comment": "App version row title",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "版本"
-          }
-        }
-      }
-    },
-    "Language": {
-      "comment": "Section header for language settings",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "语言"
-          }
-        }
-      }
-    },
-    "App Language": {
-      "comment": "Picker title for app language",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "应用语言"
-          }
-        }
-      }
-    },
-    "Follow System": {
-      "comment": "Language option that follows system locale",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "跟随系统"
-          }
-        }
-      }
-    },
-    "English": {
-      "comment": "English language option",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "英文"
-          }
-        }
-      }
-    },
-    "Simplified Chinese": {
-      "comment": "Simplified Chinese language option",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "简体中文"
+            "value": "🔦 手电筒、对焦锁定和变焦"
           }
         }
       }

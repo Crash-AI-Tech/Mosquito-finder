@@ -28,8 +28,48 @@ enum RuntimeModelMode: String, CaseIterable, Identifiable {
         }
     }
 
+    var localizedDisplayNameKey: LocalizedStringKey {
+        switch self {
+        case .coreMLStrict: return "CoreML Strict"
+        case .coreMLBalanced: return "CoreML Balanced"
+        case .detectorDfine: return "D-FINE Detector"
+        case .detectorYolox: return "YOLOX Detector"
+        }
+    }
+
     var isDetectorMode: Bool {
         self == .detectorDfine || self == .detectorYolox
+    }
+
+    var bundledModelName: String? {
+        switch self {
+        case .detectorDfine: return "DfineMosquitoDetector"
+        case .detectorYolox: return "YoloxMosquitoDetector"
+        default: return nil
+        }
+    }
+
+    var isBundled: Bool {
+        guard let name = bundledModelName else { return true }
+        return Bundle.main.url(forResource: name, withExtension: "mlmodelc") != nil
+            || Bundle.main.url(forResource: name, withExtension: "mlmodel") != nil
+    }
+
+    var isProductionReady: Bool {
+        switch self {
+        case .coreMLStrict, .coreMLBalanced, .detectorYolox:
+            return true
+        case .detectorDfine:
+            return false
+        }
+    }
+
+    static var selectableCases: [RuntimeModelMode] {
+        allCases.filter { $0.isBundled && $0.isProductionReady }
+    }
+
+    static var preferredDefault: RuntimeModelMode {
+        RuntimeModelMode.detectorYolox.isBundled ? .detectorYolox : .coreMLStrict
     }
 }
 
@@ -71,11 +111,36 @@ struct RuntimeDetectionSettings {
         stage1BackgroundVarianceThreshold: 0.018
     )
 
+    static let yoloxHighPrecision = RuntimeDetectionSettings(
+        modelMode: .detectorYolox,
+        stage2ConfidenceThreshold: 0.78,
+        minZoomFactor: 1.4,
+        centerRegionRatio: 0.32,
+        minTargetSize: 16,
+        stableFrameCount: 4,
+        stage2Cooldown: 0.45,
+        maxStage1Detections: 8,
+        stage1LocalContrastThreshold: 0.06,
+        stage1BackgroundVarianceThreshold: 0.018
+    )
+
+    static func preset(for mode: RuntimeModelMode) -> RuntimeDetectionSettings {
+        switch mode {
+        case .coreMLBalanced:
+            return balanced
+        case .detectorYolox:
+            return yoloxHighPrecision
+        case .coreMLStrict, .detectorDfine:
+            return strict
+        }
+    }
+
     static var current: RuntimeDetectionSettings {
         let defaults = UserDefaults.standard
-        let storedMode = defaults.string(forKey: "detectionModelMode") ?? RuntimeModelMode.coreMLStrict.rawValue
-        let mode = RuntimeModelMode(rawValue: storedMode) ?? .coreMLStrict
-        let preset = mode == .coreMLBalanced ? RuntimeDetectionSettings.balanced : RuntimeDetectionSettings.strict
+        let storedMode = defaults.string(forKey: "detectionModelMode") ?? RuntimeModelMode.preferredDefault.rawValue
+        let requestedMode = RuntimeModelMode(rawValue: storedMode) ?? RuntimeModelMode.preferredDefault
+        let mode = requestedMode.isBundled && requestedMode.isProductionReady ? requestedMode : RuntimeModelMode.preferredDefault
+        let preset = RuntimeDetectionSettings.preset(for: mode)
 
         return RuntimeDetectionSettings(
             modelMode: mode,
@@ -92,7 +157,7 @@ struct RuntimeDetectionSettings {
     }
 
     static func applyPreset(_ mode: RuntimeModelMode) {
-        let preset = mode == .coreMLBalanced ? RuntimeDetectionSettings.balanced : RuntimeDetectionSettings.strict
+        let preset = RuntimeDetectionSettings.preset(for: mode)
         let defaults = UserDefaults.standard
         defaults.set(mode.rawValue, forKey: "detectionModelMode")
         defaults.set(Double(preset.stage2ConfidenceThreshold), forKey: "stage2ConfidenceThreshold")

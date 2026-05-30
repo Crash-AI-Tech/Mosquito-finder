@@ -7,6 +7,8 @@ import AVFoundation
 struct HuntingView: View {
     @StateObject private var viewModel = HuntingViewModel()
     @AppStorage("appLanguage") private var appLanguage: String = ""
+    @AppStorage("hasSeenHuntingGuide") private var hasSeenHuntingGuide = false
+    @State private var showMissionGuide = false
 
     private var currentLocale: Locale {
         switch appLanguage {
@@ -95,6 +97,10 @@ struct HuntingView: View {
                             .padding(.horizontal, 16)
                             .padding(.top, 12)
 
+                        missionPromptPanel
+                            .padding(.horizontal, 16)
+                            .padding(.top, 10)
+
                         Spacer()
 
                         // 发现阶段隐藏控制栏，改为紧凑面板
@@ -116,10 +122,29 @@ struct HuntingView: View {
                     mosquitoFoundPanel
                 }
 
+                if viewModel.isSessionActive {
+                    phaseEffectsOverlay
+                        .allowsHitTesting(false)
+                }
+
+                if showMissionGuide {
+                    MissionGuideOverlay(
+                        onBegin: {
+                            hasSeenHuntingGuide = true
+                            showMissionGuide = false
+                        },
+                        onSkip: {
+                            hasSeenHuntingGuide = true
+                            showMissionGuide = false
+                        }
+                    )
+                    .transition(.opacity)
+                }
+
                 // 错误提示
                 if let error = viewModel.errorMessage {
                     VStack {
-                        Text("Error: \(error)")
+                        Text(String(format: NSLocalizedString("Error: %@", comment: ""), error))
                             .font(.system(.footnote, design: .monospaced))
                             .foregroundColor(.red)
                             .padding(.horizontal, 16)
@@ -217,6 +242,31 @@ struct HuntingView: View {
         .padding(8)
         .background(Color.black.opacity(0.5))
         .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.green.opacity(0.15), lineWidth: 1))
+        .cornerRadius(8)
+    }
+
+    private var missionPromptPanel: some View {
+        HStack(spacing: 10) {
+            Image(systemName: missionPromptIcon)
+                .foregroundColor(phaseColor)
+            Text(missionPromptText)
+                .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                .foregroundColor(.white.opacity(0.88))
+                .lineLimit(2)
+            Spacer()
+            if viewModel.currentPhase == .engaging {
+                ProgressView()
+                    .tint(.orange)
+                    .scaleEffect(0.8)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 9)
+        .background(Color.black.opacity(0.58))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(phaseColor.opacity(0.35), lineWidth: 1)
+        )
         .cornerRadius(8)
     }
 
@@ -381,7 +431,12 @@ struct HuntingView: View {
                 Spacer().frame(height: 52)
 
                 // 开始按钮
-                Button(action: { viewModel.startHunting() }) {
+                Button(action: {
+                    viewModel.startHunting()
+                    if !hasSeenHuntingGuide {
+                        showMissionGuide = true
+                    }
+                }) {
                     HStack(spacing: 10) {
                         Image(systemName: "play.fill")
                             .font(.system(size: 14, weight: .bold))
@@ -496,7 +551,7 @@ struct HuntingView: View {
                     .stroke(Color.red, style: StrokeStyle(lineWidth: lw, lineCap: .square))
 
                     // 标签（双语，修正错别字）
-                    Text(isChineseActive ? "目标锁定" : "TARGET LOCKED")
+                    Text("TARGET LOCKED")
                         .font(.system(size: 9, weight: .bold, design: .monospaced))
                         .foregroundColor(.red)
                         .tracking(1)
@@ -522,7 +577,7 @@ struct HuntingView: View {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundColor(.red)
                         .font(.system(size: 16))
-                    Text(isChineseActive ? "发现蚊子！" : "MOSQUITO FOUND")
+                    Text("MOSQUITO FOUND")
                         .font(.system(size: 13, weight: .bold, design: .monospaced))
                         .foregroundColor(.red)
                         .tracking(2)
@@ -589,10 +644,147 @@ struct HuntingView: View {
         }
     }
 
+    private var missionPromptIcon: String {
+        switch viewModel.currentPhase {
+        case .idle: return "scope"
+        case .scanning: return "radar"
+        case .engaging: return "dot.scope"
+        case .killing: return "bolt.fill"
+        }
+    }
+
+    private var missionPromptText: LocalizedStringKey {
+        switch viewModel.currentPhase {
+        case .idle:
+            return "Mission system ready."
+        case .scanning:
+            return "Sweep walls and corners slowly."
+        case .engaging:
+            return "Center the halo and hold steady."
+        case .killing:
+            return "Target confirmed. Finish it."
+        }
+    }
+
+    private var phaseEffectsOverlay: some View {
+        ZStack {
+            if viewModel.currentPhase == .engaging {
+                LockPulseEffect(color: .orange)
+            }
+            if viewModel.currentPhase == .killing {
+                Color.red.opacity(0.10)
+                    .ignoresSafeArea()
+                LockPulseEffect(color: .red)
+            }
+        }
+    }
+
     private func parseConfidence(_ text: String) -> Double? {
         let digits = text.filter { $0.isNumber || $0 == "." }
         guard let v = Double(digits) else { return nil }
         return v > 1 ? v / 100.0 : v
+    }
+}
+
+private struct MissionGuideOverlay: View {
+    let onBegin: () -> Void
+    let onSkip: () -> Void
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.88)
+                .ignoresSafeArea()
+
+            VStack(spacing: 20) {
+                VStack(spacing: 8) {
+                    Text("Mission Briefing")
+                        .font(.system(size: 25, weight: .bold, design: .monospaced))
+                        .foregroundColor(.white)
+                    Text("Learn the lock-on flow before the first hunt.")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.green.opacity(0.82))
+                        .multilineTextAlignment(.center)
+                }
+
+                VStack(spacing: 12) {
+                    guideStep(icon: "radar", title: "Scan", body: "Sweep slowly across walls and corners.")
+                    guideStep(icon: "scope", title: "Lock", body: "Keep the target inside the reticle.")
+                    guideStep(icon: "plus.magnifyingglass", title: "Confirm", body: "Zoom in or move closer until lock turns red.")
+                    guideStep(icon: "bolt.fill", title: "Finish", body: "Red lock means confirmed. Finish the target.")
+                }
+
+                HStack(spacing: 12) {
+                    Button(action: onSkip) {
+                        Text("Skip")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.78))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(Color.white.opacity(0.10))
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    }
+
+                    Button(action: onBegin) {
+                        Text("Begin Mission")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundColor(.black)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(Color.green)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    }
+                }
+            }
+            .padding(22)
+            .background(Color.black.opacity(0.72))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(Color.green.opacity(0.35), lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .padding(.horizontal, 22)
+        }
+    }
+
+    private func guideStep(icon: String, title: LocalizedStringKey, body: LocalizedStringKey) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundColor(.green)
+                .frame(width: 28)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.system(size: 13, weight: .bold, design: .monospaced))
+                    .foregroundColor(.white)
+                Text(body)
+                    .font(.system(size: 13))
+                    .foregroundColor(.white.opacity(0.68))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer()
+        }
+        .padding(12)
+        .background(Color.white.opacity(0.07))
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+}
+
+private struct LockPulseEffect: View {
+    let color: Color
+    @State private var scale: CGFloat = 0.62
+    @State private var opacity: Double = 0.45
+
+    var body: some View {
+        Circle()
+            .stroke(color.opacity(opacity), lineWidth: 2)
+            .frame(width: 260, height: 260)
+            .scaleEffect(scale)
+            .onAppear {
+                withAnimation(.easeOut(duration: 0.95).repeatForever(autoreverses: false)) {
+                    scale = 1.15
+                    opacity = 0.0
+                }
+            }
     }
 }
 
@@ -645,4 +837,3 @@ class CameraPreviewViewController: UIViewController {
 #Preview {
     HuntingView()
 }
-

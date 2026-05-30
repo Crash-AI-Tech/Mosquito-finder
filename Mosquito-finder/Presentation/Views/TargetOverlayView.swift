@@ -158,16 +158,16 @@ struct TargetBoundingBoxView: View {
         }
     }
     
-    private var statusText: String {
+    private var statusText: LocalizedStringKey {
         switch targetState {
         case .suspect:
-            return "可疑"
+            return "Suspicious"
         case .engaging:
-            return "确认中..."
+            return "Confirming..."
         case .confirmed:
-            return "蚊子!"
+            return "Mosquito!"
         case .dismissed:
-            return "已排除"
+            return "Cleared"
         }
     }
     
