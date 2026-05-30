@@ -1,0 +1,74 @@
+__include__: [
+  '../external/D-FINE/configs/dfine/custom/dfine_hgnetv2_n_custom.yml',
+]
+
+output_dir: ./artifacts/dfine_mosquito_n_long
+print_freq: 20
+checkpoint_freq: 2
+eval_spatial_size: [416, 416]
+
+num_classes: 1
+remap_mscoco_category: False
+use_amp: False
+use_ema: True
+sync_bn: False
+
+epochs: 14
+clip_max_norm: 0.1
+
+HGNetv2:
+  pretrained: False
+
+optimizer:
+  lr: 0.00015
+  params:
+    -
+      params: '^(?=.*backbone)(?!.*norm|bn).*$'
+      lr: 0.00005
+    -
+      params: '^(?=.*backbone)(?=.*norm|bn).*$'
+      lr: 0.00005
+      weight_decay: 0.
+    -
+      params: '^(?=.*(?:encoder|decoder))(?=.*(?:norm|bn|bias)).*$'
+      weight_decay: 0.
+
+lr_scheduler:
+  milestones: [9, 12]
+  gamma: 0.3
+
+lr_warmup_scheduler:
+  warmup_duration: 80
+
+train_dataloader:
+  total_batch_size: 4
+  num_workers: 0
+  dataset:
+    img_folder: /Users/nsaviour/Desktop/workplace/codeProject/Mosquito-finder/data/detector/generated_dfine/train2017
+    ann_file: /Users/nsaviour/Desktop/workplace/codeProject/Mosquito-finder/data/detector/generated_dfine/annotations/instances_train2017.json
+    transforms:
+      policy:
+        epoch: 11
+      ops:
+        - {type: RandomPhotometricDistort, p: 0.7}
+        - {type: RandomHorizontalFlip}
+        - {type: Resize, size: [416, 416]}
+        - {type: SanitizeBoundingBoxes, min_size: 1}
+        - {type: ConvertPILImage, dtype: 'float32', scale: True}
+        - {type: ConvertBoxes, fmt: 'cxcywh', normalize: True}
+  collate_fn:
+    base_size: 416
+    base_size_repeat: ~
+    stop_epoch: 11
+    ema_restart_decay: 0.9999
+
+val_dataloader:
+  total_batch_size: 4
+  num_workers: 0
+  dataset:
+    img_folder: /Users/nsaviour/Desktop/workplace/codeProject/Mosquito-finder/data/detector/generated_dfine/val2017
+    ann_file: /Users/nsaviour/Desktop/workplace/codeProject/Mosquito-finder/data/detector/generated_dfine/annotations/instances_val2017.json
+    transforms:
+      ops:
+        - {type: Resize, size: [416, 416]}
+        - {type: ConvertPILImage, dtype: 'float32', scale: True}

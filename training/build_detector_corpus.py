@@ -53,6 +53,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--reality-count", type=int, default=480)
     parser.add_argument("--positive-ratio", type=float, default=0.52)
     parser.add_argument("--seed", type=int, default=20260530)
+    parser.add_argument(
+        "--zero-category-id",
+        action="store_true",
+        help="Use category id 0 in COCO annotations for D-FINE custom training.",
+    )
     parser.add_argument("--clean", action="store_true")
     return parser
 
@@ -116,10 +121,47 @@ def background_tile_or_screen(rng: random.Random) -> Image.Image:
     return image
 
 
+def background_painted_corner(rng: random.Random) -> Image.Image:
+    base = rng.randint(176, 246)
+    pixels = np.full((IMAGE_SIZE, IMAGE_SIZE, 3), base, dtype=np.float32)
+    pixels += np.random.normal(0, rng.uniform(3, 14), pixels.shape)
+
+    # Subtle room edges, stains, and flashlight falloff match the real hunting flow.
+    if rng.random() < 0.55:
+        edge = rng.randint(72, 340)
+        pixels[:, max(0, edge - 2) : min(IMAGE_SIZE, edge + 2), :] -= rng.uniform(10, 34)
+    if rng.random() < 0.45:
+        edge = rng.randint(72, 340)
+        pixels[max(0, edge - 2) : min(IMAGE_SIZE, edge + 2), :, :] -= rng.uniform(8, 28)
+    for _ in range(rng.randint(1, 6)):
+        x = rng.randint(0, IMAGE_SIZE - 1)
+        y = rng.randint(0, IMAGE_SIZE - 1)
+        radius = rng.randint(18, 92)
+        stain = Image.new("L", (IMAGE_SIZE, IMAGE_SIZE), 0)
+        stain_draw = ImageDraw.Draw(stain)
+        stain_draw.ellipse([x - radius, y - radius, x + radius, y + radius], fill=rng.randint(12, 42))
+        stain = stain.filter(ImageFilter.GaussianBlur(rng.uniform(12, 32)))
+        pixels -= np.asarray(stain)[:, :, None] * rng.uniform(0.25, 0.9)
+
+    yy, xx = np.mgrid[:IMAGE_SIZE, :IMAGE_SIZE]
+    cx = rng.randint(80, 335)
+    cy = rng.randint(80, 335)
+    dist = np.sqrt((xx - cx) ** 2 + (yy - cy) ** 2)
+    falloff = np.clip((dist - rng.randint(90, 150)) / rng.randint(170, 260), 0, 1)
+    pixels *= 1.0 - falloff[:, :, None] * rng.uniform(0.18, 0.48)
+    return Image.fromarray(clamp(pixels), "RGB").filter(ImageFilter.GaussianBlur(rng.uniform(0, 0.7)))
+
+
 def build_background(rng: random.Random) -> Image.Image:
     builder = rng.choices(
-        [background_wall, background_wood, background_fabric, background_tile_or_screen],
-        weights=[0.42, 0.20, 0.22, 0.16],
+        [
+            background_wall,
+            background_wood,
+            background_fabric,
+            background_tile_or_screen,
+            background_painted_corner,
+        ],
+        weights=[0.32, 0.16, 0.18, 0.14, 0.20],
         k=1,
     )[0]
     image = builder(rng)
@@ -162,13 +204,31 @@ def draw_hard_negatives(image: Image.Image, rng: random.Random) -> None:
             shade = rng.randint(0, 80)
             draw.point((x, y), fill=(shade, shade, shade))
 
+    # Near-miss insects and wall artifacts: these are what caused false positives in app testing.
+    for _ in range(rng.randint(0, 5)):
+        x = rng.randint(20, IMAGE_SIZE - 20)
+        y = rng.randint(20, IMAGE_SIZE - 20)
+        shade = rng.randint(15, 95)
+        radius = rng.randint(2, 8)
+        if rng.random() < 0.5:
+            draw.ellipse([x - radius, y - radius, x + radius, y + radius], fill=(shade, shade, shade))
+            for side in (-1, 1):
+                draw.line([(x, y), (x + side * rng.randint(8, 22), y + rng.randint(-8, 8))], fill=(shade, shade, shade), width=1)
+        else:
+            draw.rectangle([x, y, x + rng.randint(4, 18), y + rng.randint(1, 4)], fill=(shade, shade, shade))
+
 
 def draw_mosquito(image: Image.Image, rng: random.Random) -> Box:
     layer = Image.new("RGBA", image.size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(layer)
 
-    body_w = rng.randint(5, 14)
-    body_h = rng.randint(10, 28)
+    # Real phone frames often see the mosquito as a tiny 8-30 px target.
+    if rng.random() < 0.62:
+        body_w = rng.randint(3, 9)
+        body_h = rng.randint(6, 20)
+    else:
+        body_w = rng.randint(8, 15)
+        body_h = rng.randint(18, 34)
     cx = rng.randint(42, IMAGE_SIZE - 42)
     cy = rng.randint(42, IMAGE_SIZE - 42)
     angle = rng.uniform(-math.pi, math.pi)
@@ -238,6 +298,13 @@ def draw_mosquito(image: Image.Image, rng: random.Random) -> Box:
 
 
 def save_image(image: Image.Image, path: Path, rng: random.Random) -> None:
+    if rng.random() < 0.55:
+        # Phone sensor noise + compression/sharpening artifacts.
+        arr = np.asarray(image).astype(np.float32)
+        arr += np.random.normal(0, rng.uniform(1.5, 7.5), arr.shape)
+        image = Image.fromarray(clamp(arr), "RGB")
+    if rng.random() < 0.35:
+        image = ImageEnhance.Sharpness(image).enhance(rng.uniform(0.55, 1.85))
     if rng.random() < 0.40:
         image = image.filter(ImageFilter.GaussianBlur(rng.uniform(0.0, 0.55)))
     image.save(path, quality=rng.randint(82, 96))
@@ -266,7 +333,12 @@ def make_sample(split: str, index: int, positive: bool, output_dir: Path, rng: r
     }
 
 
-def write_coco(annotation_dir: Path, split_name: str, samples: list[dict[str, Any]]) -> None:
+def write_coco(
+    annotation_dir: Path,
+    split_name: str,
+    samples: list[dict[str, Any]],
+    category_id: int,
+) -> None:
     annotations = []
     ann_id = 1
     for sample in samples:
@@ -275,7 +347,7 @@ def write_coco(annotation_dir: Path, split_name: str, samples: list[dict[str, An
                 {
                     "id": ann_id,
                     "image_id": sample["id"],
-                    "category_id": CLASS_ID,
+                    "category_id": category_id,
                     "bbox": box.to_coco(),
                     "area": box.area,
                     "iscrowd": 0,
@@ -294,7 +366,7 @@ def write_coco(annotation_dir: Path, split_name: str, samples: list[dict[str, An
             for sample in samples
         ],
         "annotations": annotations,
-        "categories": [{"id": CLASS_ID, "name": CLASS_NAME}],
+        "categories": [{"id": category_id, "name": CLASS_NAME}],
     }
     annotation_dir.mkdir(parents=True, exist_ok=True)
     (annotation_dir / f"instances_{split_name}.json").write_text(
@@ -340,9 +412,10 @@ def main() -> None:
     reality_samples = build_split("reality2017", args.reality_count, 0.28, args.output_dir, rng)
 
     ann_dir = args.output_dir / "annotations"
-    write_coco(ann_dir, "train2017", train_samples)
-    write_coco(ann_dir, "val2017", val_samples)
-    write_coco(ann_dir, "reality2017", reality_samples)
+    category_id = 0 if args.zero_category_id else CLASS_ID
+    write_coco(ann_dir, "train2017", train_samples, category_id)
+    write_coco(ann_dir, "val2017", val_samples, category_id)
+    write_coco(ann_dir, "reality2017", reality_samples, category_id)
 
     write_yolo_labels(args.output_dir, "train2017", train_samples)
     write_yolo_labels(args.output_dir, "val2017", val_samples)
