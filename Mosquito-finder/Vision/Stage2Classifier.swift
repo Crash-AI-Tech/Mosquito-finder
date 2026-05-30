@@ -24,8 +24,11 @@ class Stage2Classifier: ObservableObject {
     
     // MARK: - Configuration
     
-    /// 置信度阈值
-    var confidenceThreshold: Float = 0.55
+    /// 置信度阈值。当前阶段优先压误报，和离线高 precision 评估阈值保持一致。
+    var confidenceThreshold: Float = 0.90
+
+    /// 当前运行模型模式
+    var modelMode: RuntimeModelMode = .coreMLStrict
     
     /// ROI 区域大小（相对于屏幕中心）
     var roiSize: CGSize = CGSize(width: 224, height: 224)
@@ -34,6 +37,7 @@ class Stage2Classifier: ObservableObject {
     
     private var classificationRequest: VNCoreMLRequest?
     private var isModelLoaded = false
+    private var loadedModelMode: RuntimeModelMode?
     
     // MARK: - Init
     
@@ -81,31 +85,7 @@ class Stage2Classifier: ObservableObject {
         do {
             try handler.perform([request])
             
-            if let results = request.results as? [VNClassificationObservation],
-               let topResult = results.first {
-                let normalizedIdentifier = topResult.identifier
-                    .lowercased()
-                    .replacingOccurrences(of: "-", with: "_")
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                let isMosquito = normalizedIdentifier == "mosquito"
-                
-                // 高对比暗点兜底：低光或模型置信度不足时，用于捕捉墙面或图片上的典型蚊子暗部。
-                let features = extractRegionFeatures(region: region, from: pixelBuffer)
-                let isDarkTarget = features.minBrightness < 0.30
-                    && features.contrast > 0.22
-                    && features.darkPixelRatio > 0.015
-                    && features.darkPixelRatio < 0.75
-                
-                let modelAccepted = isMosquito && topResult.confidence >= confidenceThreshold
-                let finalIsMosquito = modelAccepted || isDarkTarget
-                let finalConfidence = isDarkTarget ? max(Float(0.82), topResult.confidence) : topResult.confidence
-                
-                let result = ClassificationResult(
-                    isMosquito: finalIsMosquito,
-                    confidence: finalConfidence,
-                    processingTime: Date().timeIntervalSince(startTime)
-                )
-                
+            if let result = parseClassificationResult(from: request, startTime: startTime) {
                 lastResult = result
                 return result
             }
@@ -121,9 +101,21 @@ class Stage2Classifier: ObservableObject {
         do {
             let config = MLModelConfiguration()
             config.computeUnits = .all
-            
-            let model = try MosquitoClassifier(configuration: config)
-            let visionModel = try VNCoreMLModel(for: model.model)
+
+            let visionModel: VNCoreMLModel
+            if let detectorModelURL = bundledDetectorModelURL(for: modelMode) {
+                let detectorModel = try MLModel(contentsOf: detectorModelURL, configuration: config)
+                visionModel = try VNCoreMLModel(for: detectorModel)
+            } else if modelMode.isDetectorMode {
+                print("检测器模型未找到，当前模式不执行确认: \(modelMode.displayName)")
+                isModelLoaded = false
+                classificationRequest = nil
+                loadedModelMode = nil
+                return
+            } else {
+                let model = try MosquitoClassifier(configuration: config)
+                visionModel = try VNCoreMLModel(for: model.model)
+            }
             
             classificationRequest = VNCoreMLRequest(model: visionModel) { _, error in
                 if let error = error {
@@ -133,10 +125,22 @@ class Stage2Classifier: ObservableObject {
             
             classificationRequest?.imageCropAndScaleOption = .centerCrop
             isModelLoaded = true
+            loadedModelMode = modelMode
             
         } catch {
             print("模型加载失败: \(error)")
             isModelLoaded = false
+            loadedModelMode = nil
+        }
+    }
+
+    func apply(settings: RuntimeDetectionSettings) {
+        confidenceThreshold = settings.stage2ConfidenceThreshold
+        if modelMode != settings.modelMode {
+            modelMode = settings.modelMode
+            isModelLoaded = false
+            classificationRequest = nil
+            loadedModelMode = nil
         }
     }
     
@@ -154,74 +158,96 @@ class Stage2Classifier: ObservableObject {
     private func simulateClassification(region: CGRect, in pixelBuffer: CVPixelBuffer) -> ClassificationResult {
         return ClassificationResult(isMosquito: false, confidence: 0, processingTime: 0)
     }
-    
-    /// 提取区域特征
-    private func extractRegionFeatures(region: CGRect, from pixelBuffer: CVPixelBuffer) -> RegionFeatures {
-        CVPixelBufferLockBaseAddress(pixelBuffer, .readOnly)
-        defer { CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly) }
-        
-        guard let baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer) else {
-            return RegionFeatures(averageBrightness: 0.5, minBrightness: 0.5, contrast: 0, darkPixelRatio: 0)
-        }
-        
-        let width = CVPixelBufferGetWidth(pixelBuffer)
-        let height = CVPixelBufferGetHeight(pixelBuffer)
-        let bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer)
-        
-        // 确保区域在图像范围内
-        let clampedRegion = CGRect(
-            x: max(0, min(region.origin.x, CGFloat(width - 1))),
-            y: max(0, min(region.origin.y, CGFloat(height - 1))),
-            width: min(region.width, CGFloat(width) - region.origin.x),
-            height: min(region.height, CGFloat(height) - region.origin.y)
-        )
-        
-        var totalBrightness: Float = 0
-        var minBrightness: Float = 1
-        var maxBrightness: Float = 0
-        var pixelCount: Float = 0
-        var darkPixelCount: Float = 0
-        
-        let buffer = baseAddress.assumingMemoryBound(to: UInt8.self)
-        
-        for y in Int(clampedRegion.origin.y)..<Int(clampedRegion.origin.y + clampedRegion.height) {
-            for x in Int(clampedRegion.origin.x)..<Int(clampedRegion.origin.x + clampedRegion.width) {
-                let offset = y * bytesPerRow + x * 4
-                
-                let b = Float(buffer[offset]) / 255.0
-                let g = Float(buffer[offset + 1]) / 255.0
-                let r = Float(buffer[offset + 2]) / 255.0
-                
-                let brightness = (r + g + b) / 3.0
-                
-                totalBrightness += brightness
-                minBrightness = min(minBrightness, brightness)
-                maxBrightness = max(maxBrightness, brightness)
-                if brightness < 0.35 {
-                    darkPixelCount += 1
-                }
-                pixelCount += 1
-            }
-        }
-        
-        let averageBrightness = pixelCount > 0 ? totalBrightness / pixelCount : 0.5
-        let contrast = maxBrightness - minBrightness
-        let darkPixelRatio = pixelCount > 0 ? darkPixelCount / pixelCount : 0
 
-        return RegionFeatures(
-            averageBrightness: averageBrightness,
-            minBrightness: minBrightness,
-            contrast: contrast,
-            darkPixelRatio: darkPixelRatio
-        )
+    private func parseClassificationResult(
+        from request: VNCoreMLRequest,
+        startTime: Date
+    ) -> ClassificationResult? {
+        if let results = request.results as? [VNClassificationObservation],
+           let topResult = results.first {
+            let isMosquito = normalizedLabel(topResult.identifier) == "mosquito"
+            return ClassificationResult(
+                isMosquito: isMosquito && topResult.confidence >= confidenceThreshold,
+                confidence: topResult.confidence,
+                processingTime: Date().timeIntervalSince(startTime)
+            )
+        }
+
+        if let observations = request.results as? [VNRecognizedObjectObservation],
+           let best = observations
+            .flatMap({ $0.labels })
+            .max(by: { $0.confidence < $1.confidence }) {
+            let isMosquito = normalizedLabel(best.identifier) == "mosquito"
+            return ClassificationResult(
+                isMosquito: isMosquito && best.confidence >= confidenceThreshold,
+                confidence: best.confidence,
+                processingTime: Date().timeIntervalSince(startTime)
+            )
+        }
+
+        if let featureObservations = request.results as? [VNCoreMLFeatureValueObservation],
+           let confidence = bestDetectorConfidence(in: featureObservations) {
+            return ClassificationResult(
+                isMosquito: confidence >= confidenceThreshold,
+                confidence: confidence,
+                processingTime: Date().timeIntervalSince(startTime)
+            )
+        }
+
+        return nil
     }
-}
 
-// MARK: - Supporting Types
+    private func bestDetectorConfidence(in observations: [VNCoreMLFeatureValueObservation]) -> Float? {
+        for observation in observations {
+            guard let scores = observation.featureValue.multiArrayValue,
+                  scores.shape.count >= 3,
+                  scores.shape.last?.intValue ?? 0 >= 5 else {
+                continue
+            }
 
-struct RegionFeatures {
-    let averageBrightness: Float
-    let minBrightness: Float
-    let contrast: Float
-    let darkPixelRatio: Float
+            let candidateCount = scores.shape[scores.shape.count - 2].intValue
+            let valueCount = scores.shape[scores.shape.count - 1].intValue
+            var bestScore: Float = 0
+
+            for index in 0..<candidateCount {
+                let objectness = detectorValue(scores, candidate: index, value: 4)
+                let classConfidence = valueCount > 5 ? detectorValue(scores, candidate: index, value: 5) : 1
+                bestScore = max(bestScore, objectness * classConfidence)
+            }
+
+            return bestScore
+        }
+
+        return nil
+    }
+
+    private func detectorValue(_ array: MLMultiArray, candidate: Int, value: Int) -> Float {
+        let indexes: [NSNumber]
+        if array.shape.count == 3 {
+            indexes = [0, NSNumber(value: candidate), NSNumber(value: value)]
+        } else {
+            indexes = [NSNumber(value: candidate), NSNumber(value: value)]
+        }
+
+        return Float(truncating: array[indexes])
+    }
+
+    private func normalizedLabel(_ identifier: String) -> String {
+        identifier
+            .lowercased()
+            .replacingOccurrences(of: "-", with: "_")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func bundledDetectorModelURL(for mode: RuntimeModelMode) -> URL? {
+        switch mode {
+        case .detectorDfine:
+            return Bundle.main.url(forResource: "DfineMosquitoDetector", withExtension: "mlmodelc")
+        case .detectorYolox:
+            return Bundle.main.url(forResource: "YoloxMosquitoDetector", withExtension: "mlmodelc")
+        case .coreMLStrict, .coreMLBalanced:
+            return nil
+        }
+    }
+    
 }

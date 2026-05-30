@@ -13,14 +13,26 @@ struct TriggerEvaluator {
     
     // MARK: - Configuration
     
-    /// 触发 Stage 2 的最小变焦倍数。1.0x 允许用户直接对准图片/墙面目标测试。
-    var minZoomFactor: CGFloat = 1.0
+    /// 触发 Stage 2 的最小变焦倍数。先要求用户主动放大，降低随机背景误触发。
+    var minZoomFactor: CGFloat = 2.0
     
     /// 中心区域半径（相对于屏幕短边的比例）
-    var centerRegionRatio: CGFloat = 0.35
+    var centerRegionRatio: CGFloat = 0.25
     
     /// 触发 Stage 2 的最小目标尺寸（像素）
-    var minTargetSize: CGFloat = 15
+    var minTargetSize: CGFloat = 20
+
+    init(settings: RuntimeDetectionSettings = .strict) {
+        self.minZoomFactor = settings.minZoomFactor
+        self.centerRegionRatio = settings.centerRegionRatio
+        self.minTargetSize = settings.minTargetSize
+    }
+
+    mutating func apply(settings: RuntimeDetectionSettings) {
+        minZoomFactor = settings.minZoomFactor
+        centerRegionRatio = settings.centerRegionRatio
+        minTargetSize = settings.minTargetSize
+    }
     
     // MARK: - Public Methods
     

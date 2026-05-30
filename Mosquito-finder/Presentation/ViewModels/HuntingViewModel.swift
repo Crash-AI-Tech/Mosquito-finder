@@ -132,6 +132,7 @@ class HuntingViewModel: ObservableObject {
     
     /// 关闭目标（点击已处理）
     func dismissTarget(_ target: TrackedTarget) {
+        saveReviewCandidate(reason: "dismiss_target_button", targetID: target.id.uuidString)
         targetCoordinator.dismissTarget(target.id)
         hapticsEngine.targetDismissed()
         frozenFrame = nil
@@ -144,6 +145,7 @@ class HuntingViewModel: ObservableObject {
 
     /// 点击已处理（无需 target 对象）
     func dismissCurrentMosquito() {
+        saveReviewCandidate(reason: "dismiss_current_button", targetID: activeTarget?.id.uuidString)
         hapticsEngine.targetDismissed()
         frozenFrame = nil
         frozenTargetRect = nil
@@ -294,5 +296,67 @@ class HuntingViewModel: ObservableObject {
     private func stopSessionTimer() {
         sessionTimer?.invalidate()
         sessionTimer = nil
+    }
+
+    private func saveReviewCandidate(reason: String, targetID: String?) {
+        guard let frozenFrame,
+              let imageData = frozenFrame.jpegData(compressionQuality: 0.92) else {
+            return
+        }
+
+        let timestamp = ISO8601DateFormatter()
+            .string(from: Date())
+            .replacingOccurrences(of: ":", with: "-")
+        let targetRect = frozenTargetRect
+        let zoomFactor = currentZoomFactor
+        let classification = classificationResult
+
+        DispatchQueue.global(qos: .utility).async {
+            let fileManager = FileManager.default
+            guard let documents = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
+                return
+            }
+
+            let outputDirectory = documents
+                .appendingPathComponent("MosquitoFinderReview", isDirectory: true)
+                .appendingPathComponent("candidate_hard_negative", isDirectory: true)
+            do {
+                try fileManager.createDirectory(at: outputDirectory, withIntermediateDirectories: true)
+
+                let imageURL = outputDirectory.appendingPathComponent("\(timestamp).jpg")
+                try imageData.write(to: imageURL, options: .atomic)
+
+                var metadata: [String: Any] = [
+                    "label": "candidate_hard_negative",
+                    "reason": reason,
+                    "image_file": imageURL.lastPathComponent,
+                    "created_at": timestamp,
+                    "zoom_factor": Double(zoomFactor),
+                    "model_confidence": Double(classification?.confidence ?? 0),
+                    "model_is_mosquito": classification?.isMosquito ?? false
+                ]
+
+                if let targetID {
+                    metadata["target_id"] = targetID
+                }
+                if let targetRect {
+                    metadata["target_rect"] = [
+                        "x": Double(targetRect.origin.x),
+                        "y": Double(targetRect.origin.y),
+                        "width": Double(targetRect.width),
+                        "height": Double(targetRect.height)
+                    ]
+                }
+
+                let metadataData = try JSONSerialization.data(
+                    withJSONObject: metadata,
+                    options: [.prettyPrinted, .sortedKeys]
+                )
+                let metadataURL = outputDirectory.appendingPathComponent("\(timestamp).json")
+                try metadataData.write(to: metadataURL, options: .atomic)
+            } catch {
+                print("保存误报候选样本失败: \(error)")
+            }
+        }
     }
 }

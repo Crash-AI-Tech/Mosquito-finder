@@ -1,8 +1,12 @@
 .venv/
+external/
 artifacts/
+YOLOX_outputs/
 __pycache__/
 *.pyc
 
 data/synthetic/
+data/detector/generated/
+data/detector/generated_dfine/
 build/
 .DS_Store

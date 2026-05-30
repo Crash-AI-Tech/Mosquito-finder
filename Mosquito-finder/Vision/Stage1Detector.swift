@@ -35,6 +35,12 @@ class Stage1Detector: ObservableObject {
     
     /// 帧率限制 (提升至 10 FPS)
     var frameInterval: TimeInterval = 0.1
+
+    /// 背景平整度阈值
+    var backgroundVarianceThreshold: Float = 0.015
+
+    /// 中心暗点与周围背景的最小亮度差
+    var localContrastThreshold: Float = 0.08
     
     // MARK: - Private Properties
     
@@ -126,8 +132,8 @@ class Stage1Detector: ObservableObject {
                 // 1. 背景必须平整 (更严格的方差控制)
                 // 2. 局部对比度 (提高暗点判定置信度)
                 
-                let isSmoothBackground = bgVariance < 0.015  // 放宽方差限制，适应室内背景
-                let isLocallyDark = (bgMean - brightnessValues[0]) > 0.08  // 放宽对比度阈值
+                let isSmoothBackground = bgVariance < backgroundVarianceThreshold
+                let isLocallyDark = (bgMean - brightnessValues[0]) > localContrastThreshold
                 
                 if isSmoothBackground && isLocallyDark {
                     let centerX = CGFloat(gridX)

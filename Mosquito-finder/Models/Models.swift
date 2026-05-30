@@ -9,6 +9,114 @@ import Foundation
 import SwiftUI
 import CoreGraphics
 
+// MARK: - Runtime Detection Configuration
+
+enum RuntimeModelMode: String, CaseIterable, Identifiable {
+    case coreMLStrict = "coreml_strict"
+    case coreMLBalanced = "coreml_balanced"
+    case detectorDfine = "detector_dfine"
+    case detectorYolox = "detector_yolox"
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .coreMLStrict: return "CoreML Strict"
+        case .coreMLBalanced: return "CoreML Balanced"
+        case .detectorDfine: return "D-FINE Detector"
+        case .detectorYolox: return "YOLOX Detector"
+        }
+    }
+
+    var isDetectorMode: Bool {
+        self == .detectorDfine || self == .detectorYolox
+    }
+}
+
+struct RuntimeDetectionSettings {
+    var modelMode: RuntimeModelMode
+    var stage2ConfidenceThreshold: Float
+    var minZoomFactor: CGFloat
+    var centerRegionRatio: CGFloat
+    var minTargetSize: CGFloat
+    var stableFrameCount: Int
+    var stage2Cooldown: TimeInterval
+    var maxStage1Detections: Int
+    var stage1LocalContrastThreshold: Float
+    var stage1BackgroundVarianceThreshold: Float
+
+    static let strict = RuntimeDetectionSettings(
+        modelMode: .coreMLStrict,
+        stage2ConfidenceThreshold: 0.90,
+        minZoomFactor: 2.0,
+        centerRegionRatio: 0.25,
+        minTargetSize: 20,
+        stableFrameCount: 5,
+        stage2Cooldown: 0.5,
+        maxStage1Detections: 5,
+        stage1LocalContrastThreshold: 0.08,
+        stage1BackgroundVarianceThreshold: 0.015
+    )
+
+    static let balanced = RuntimeDetectionSettings(
+        modelMode: .coreMLBalanced,
+        stage2ConfidenceThreshold: 0.82,
+        minZoomFactor: 1.5,
+        centerRegionRatio: 0.30,
+        minTargetSize: 18,
+        stableFrameCount: 4,
+        stage2Cooldown: 0.5,
+        maxStage1Detections: 6,
+        stage1LocalContrastThreshold: 0.07,
+        stage1BackgroundVarianceThreshold: 0.018
+    )
+
+    static var current: RuntimeDetectionSettings {
+        let defaults = UserDefaults.standard
+        let storedMode = defaults.string(forKey: "detectionModelMode") ?? RuntimeModelMode.coreMLStrict.rawValue
+        let mode = RuntimeModelMode(rawValue: storedMode) ?? .coreMLStrict
+        let preset = mode == .coreMLBalanced ? RuntimeDetectionSettings.balanced : RuntimeDetectionSettings.strict
+
+        return RuntimeDetectionSettings(
+            modelMode: mode,
+            stage2ConfidenceThreshold: Float(defaults.doubleOrDefault("stage2ConfidenceThreshold", Double(preset.stage2ConfidenceThreshold))),
+            minZoomFactor: CGFloat(defaults.doubleOrDefault("minZoomFactor", Double(preset.minZoomFactor))),
+            centerRegionRatio: CGFloat(defaults.doubleOrDefault("centerRegionRatio", Double(preset.centerRegionRatio))),
+            minTargetSize: CGFloat(defaults.doubleOrDefault("minTargetSize", Double(preset.minTargetSize))),
+            stableFrameCount: max(2, defaults.integerOrDefault("stableFrameCount", preset.stableFrameCount)),
+            stage2Cooldown: defaults.doubleOrDefault("stage2Cooldown", preset.stage2Cooldown),
+            maxStage1Detections: max(1, defaults.integerOrDefault("maxStage1Detections", preset.maxStage1Detections)),
+            stage1LocalContrastThreshold: Float(defaults.doubleOrDefault("stage1LocalContrastThreshold", Double(preset.stage1LocalContrastThreshold))),
+            stage1BackgroundVarianceThreshold: Float(defaults.doubleOrDefault("stage1BackgroundVarianceThreshold", Double(preset.stage1BackgroundVarianceThreshold)))
+        )
+    }
+
+    static func applyPreset(_ mode: RuntimeModelMode) {
+        let preset = mode == .coreMLBalanced ? RuntimeDetectionSettings.balanced : RuntimeDetectionSettings.strict
+        let defaults = UserDefaults.standard
+        defaults.set(mode.rawValue, forKey: "detectionModelMode")
+        defaults.set(Double(preset.stage2ConfidenceThreshold), forKey: "stage2ConfidenceThreshold")
+        defaults.set(Double(preset.minZoomFactor), forKey: "minZoomFactor")
+        defaults.set(Double(preset.centerRegionRatio), forKey: "centerRegionRatio")
+        defaults.set(Double(preset.minTargetSize), forKey: "minTargetSize")
+        defaults.set(preset.stableFrameCount, forKey: "stableFrameCount")
+        defaults.set(preset.stage2Cooldown, forKey: "stage2Cooldown")
+        defaults.set(preset.maxStage1Detections, forKey: "maxStage1Detections")
+        defaults.set(Double(preset.stage1LocalContrastThreshold), forKey: "stage1LocalContrastThreshold")
+        defaults.set(Double(preset.stage1BackgroundVarianceThreshold), forKey: "stage1BackgroundVarianceThreshold")
+    }
+}
+
+private extension UserDefaults {
+    func doubleOrDefault(_ key: String, _ defaultValue: Double) -> Double {
+        object(forKey: key) == nil ? defaultValue : double(forKey: key)
+    }
+
+    func integerOrDefault(_ key: String, _ defaultValue: Int) -> Int {
+        object(forKey: key) == nil ? defaultValue : integer(forKey: key)
+    }
+}
+
 // MARK: - Stage 1 Output
 
 /// 可疑区域 - Stage 1 Radar 检测输出
@@ -67,6 +175,7 @@ struct TrackedTarget: Identifiable, Equatable {
     var detectedFrameCount: Int = 0 // 持续检测到的帧数
     var framesMissed: Int = 0       // 连续丢失的帧数
     var visibility: Double = 1.0    // 渲染透明度 (1.0 -> 0.0)
+    var requiredStableFrames: Int = RuntimeDetectionSettings.strict.stableFrameCount
     
     init(
         id: UUID = UUID(),
@@ -75,6 +184,7 @@ struct TrackedTarget: Identifiable, Equatable {
         state: TargetState = .suspect,
         lastUpdated: Date = Date(),
         detectedFrameCount: Int = 1,
+        requiredStableFrames: Int = RuntimeDetectionSettings.strict.stableFrameCount,
         visibility: Double = 1.0
     ) {
         self.id = id
@@ -83,6 +193,7 @@ struct TrackedTarget: Identifiable, Equatable {
         self.state = state
         self.lastUpdated = lastUpdated
         self.detectedFrameCount = detectedFrameCount
+        self.requiredStableFrames = requiredStableFrames
         self.visibility = visibility
     }
     
@@ -96,9 +207,9 @@ struct TrackedTarget: Identifiable, Equatable {
         boundingBox.size
     }
     
-    /// 目标是否稳定（至少持续出现 2 帧，优先保证用户测试时能快速进入确认）
+    /// 目标是否稳定。当前阶段优先压误报，要求目标连续出现约半秒。
     var isStable: Bool {
-        detectedFrameCount >= 2
+        detectedFrameCount >= requiredStableFrames
     }
     
     /// 是否足够大以触发 Stage 2

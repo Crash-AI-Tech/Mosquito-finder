@@ -29,7 +29,7 @@ class TargetCoordinator: ObservableObject {
     let stage1Detector: Stage1Detector
     let objectTracker: ObjectTracker
     let stage2Classifier: Stage2Classifier
-    let triggerEvaluator: TriggerEvaluator
+    var triggerEvaluator: TriggerEvaluator
     
     // MARK: - Configuration
     
@@ -43,7 +43,7 @@ class TargetCoordinator: ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     private var lastStage2Time: Date?
-    private let stage2Cooldown: TimeInterval = 0.5  // Stage 2 最小间隔
+    private var stage2Cooldown: TimeInterval = 0.5  // Stage 2 最小间隔
     
     // MARK: - Init
     
@@ -51,7 +51,7 @@ class TargetCoordinator: ObservableObject {
         self.stage1Detector = Stage1Detector()
         self.objectTracker = ObjectTracker()
         self.stage2Classifier = Stage2Classifier()
-        self.triggerEvaluator = TriggerEvaluator()
+        self.triggerEvaluator = TriggerEvaluator(settings: RuntimeDetectionSettings.current)
         
         setupBindings()
     }
@@ -62,6 +62,7 @@ class TargetCoordinator: ObservableObject {
     func processFrame(_ pixelBuffer: CVPixelBuffer, zoomFactor: CGFloat, isApproaching: Bool) {
         // 发现蚊子后暂停处理
         guard !isPaused else { return }
+        applyRuntimeSettings()
         let stage1StartTime = Date()
 
         // Stage 1: 雷达扫描 - 检测暗点
@@ -162,6 +163,17 @@ class TargetCoordinator: ObservableObject {
     }
     
     // MARK: - Private Methods
+
+    private func applyRuntimeSettings() {
+        let settings = RuntimeDetectionSettings.current
+        stage1Detector.maxDetections = settings.maxStage1Detections
+        stage1Detector.localContrastThreshold = settings.stage1LocalContrastThreshold
+        stage1Detector.backgroundVarianceThreshold = settings.stage1BackgroundVarianceThreshold
+        objectTracker.requiredStableFrames = settings.stableFrameCount
+        stage2Classifier.apply(settings: settings)
+        triggerEvaluator.apply(settings: settings)
+        stage2Cooldown = settings.stage2Cooldown
+    }
     
     private func setupBindings() {
         // 监听追踪器更新

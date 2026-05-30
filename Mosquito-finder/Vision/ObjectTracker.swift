@@ -36,6 +36,9 @@ class ObjectTracker: ObservableObject {
     
     /// 开启 Vision 追踪
     var useVisionTracking = true
+
+    /// 判定稳定所需连续命中帧数
+    var requiredStableFrames = RuntimeDetectionSettings.strict.stableFrameCount
     
     // MARK: - Private Properties
     
@@ -49,6 +52,9 @@ class ObjectTracker: ObservableObject {
     func update(with detections: [SuspectRegion], in pixelBuffer: CVPixelBuffer) {
         isTracking = true
         defer { isTracking = false }
+        for index in trackedTargets.indices {
+            trackedTargets[index].requiredStableFrames = requiredStableFrames
+        }
         
         let imageWidth = CGFloat(CVPixelBufferGetWidth(pixelBuffer))
         let imageHeight = CGFloat(CVPixelBufferGetHeight(pixelBuffer))
@@ -243,7 +249,8 @@ class ObjectTracker: ObservableObject {
             boundingBox: detection.boundingBox,
             trackingConfidence: detection.confidence,
             state: .suspect,
-            detectedFrameCount: 1
+            detectedFrameCount: 1,
+            requiredStableFrames: requiredStableFrames
         )
         
         trackedTargets.append(newTarget)
