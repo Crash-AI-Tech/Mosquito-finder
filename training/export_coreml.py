@@ -27,6 +27,7 @@ Output:
 
 from __future__ import annotations
 
+import argparse
 import csv
 from pathlib import Path
 from typing import Any
@@ -47,6 +48,23 @@ OUTPUT_PATH   = REPO_ROOT / "Mosquito-finder" / "MosquitoClassifier.mlmodel"
 
 IMAGE_SIZE   = 64              # px per side — matches CoreML input spec
 CLASS_LABELS = ["not_mosquito", "mosquito"]   # index 0 = negative, 1 = positive
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Train and export the Stage-2 mosquito CoreML classifier."
+    )
+    parser.add_argument("--manifest", type=Path, default=MANIFEST_PATH)
+    parser.add_argument("--output", type=Path, default=OUTPUT_PATH)
+    parser.add_argument("--image-size", type=int, default=IMAGE_SIZE)
+    parser.add_argument(
+        "--negative-weight",
+        type=float,
+        default=1.6,
+        help="Higher values reduce false positives by emphasizing hard negatives.",
+    )
+    parser.add_argument("--positive-weight", type=float, default=1.0)
+    return parser
 
 
 # ---------------------------------------------------------------------------
@@ -74,7 +92,12 @@ def load_records(manifest_path: Path) -> list[dict[str, Any]]:
 # ---------------------------------------------------------------------------
 # Training
 # ---------------------------------------------------------------------------
-def train_pipeline(records: list[dict], size: tuple[int, int]) -> Pipeline:
+def train_pipeline(
+    records: list[dict],
+    size: tuple[int, int],
+    negative_weight: float,
+    positive_weight: float,
+) -> Pipeline:
     """Fit StandardScaler + PCA + LogisticRegression on pixel features."""
     trainable = [r for r in records if r["binary_label"] >= 0]
 
@@ -86,20 +109,25 @@ def train_pipeline(records: list[dict], size: tuple[int, int]) -> Pipeline:
     n_samples, n_features = X.shape
     n_pca = min(32, n_features, n_samples - 1)
 
-    pipe = Pipeline(
-        [
-            ("scaler", StandardScaler()),
-            ("pca", PCA(n_components=n_pca, random_state=42, svd_solver="full")),
-            ("lr", LogisticRegression(
-                class_weight={0: 1.0, 1: 1.5},
-                max_iter=4000,
-                random_state=42,
-                solver="liblinear",
-            )),
-        ]
+    scaler = StandardScaler().fit(X)
+    # Detector-derived crops contain many nearly constant border pixels.
+    # Flooring the scale keeps the CoreML scale layer finite and avoids
+    # over-amplifying meaningless sub-pixel variance.
+    scaler.scale_ = np.maximum(scaler.scale_, 1e-3)
+    scaled = scaler.transform(X)
+
+    pca = PCA(n_components=n_pca, random_state=42, svd_solver="randomized")
+    projected = pca.fit_transform(scaled)
+
+    lr = LogisticRegression(
+        class_weight={0: negative_weight, 1: positive_weight},
+        max_iter=4000,
+        random_state=42,
+        solver="liblinear",
     )
-    pipe.fit(X, y)
-    return pipe
+    lr.fit(projected, y)
+
+    return Pipeline([("scaler", scaler), ("pca", pca), ("lr", lr)])
 
 
 # ---------------------------------------------------------------------------
@@ -144,6 +172,17 @@ def export_coreml(
     b_lr_1 = lr.intercept_.astype(np.float32)                        # (1,)
     W_lr   = np.vstack([-W_lr_1, W_lr_1])                           # (2, n_pca)
     b_lr   = np.array([-b_lr_1[0], b_lr_1[0]], dtype=np.float32)   # (2,)
+
+    for name, values in {
+        "scale_w": scale_w,
+        "scale_b": scale_b,
+        "W_pca": W_pca,
+        "b_pca": b_pca,
+        "W_lr": W_lr,
+        "b_lr": b_lr,
+    }.items():
+        if not np.isfinite(values).all():
+            raise ValueError(f"Non-finite CoreML parameter generated: {name}")
 
     # ── build spec ────────────────────────────────────────────────────────
     spec = Model_pb2.Model()
@@ -248,18 +287,27 @@ def export_coreml(
 # Entry point
 # ---------------------------------------------------------------------------
 def main() -> None:
+    args = build_parser().parse_args()
+    image_size = (args.image_size, args.image_size)
+
     print("Loading manifest ...")
-    records = load_records(MANIFEST_PATH)
+    records = load_records(args.manifest)
     trainable = [r for r in records if r["binary_label"] >= 0]
     pos = sum(1 for r in trainable if r["binary_label"] == 1)
     neg = len(trainable) - pos
     print(f"  {len(trainable)} trainable samples  (pos={pos}, neg={neg})")
 
-    print(f"\nTraining on {IMAGE_SIZE}x{IMAGE_SIZE} grayscale pixel features ...")
-    pipe = train_pipeline(records, (IMAGE_SIZE, IMAGE_SIZE))
+    print(f"\nTraining on {args.image_size}x{args.image_size} grayscale pixel features ...")
+    print(f"  class weights: negative={args.negative_weight}, positive={args.positive_weight}")
+    pipe = train_pipeline(
+        records,
+        image_size,
+        negative_weight=args.negative_weight,
+        positive_weight=args.positive_weight,
+    )
 
     print("\nExporting CoreML model ...")
-    export_coreml(pipe, (IMAGE_SIZE, IMAGE_SIZE), OUTPUT_PATH)
+    export_coreml(pipe, image_size, args.output)
 
     print(
         "\nDone.  The mlmodel is in the Mosquito-finder target folder and will be"

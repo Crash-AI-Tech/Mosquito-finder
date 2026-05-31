@@ -57,10 +57,8 @@ enum RuntimeModelMode: String, CaseIterable, Identifiable {
 
     var isProductionReady: Bool {
         switch self {
-        case .coreMLStrict, .coreMLBalanced, .detectorYolox:
+        case .coreMLStrict, .coreMLBalanced, .detectorDfine, .detectorYolox:
             return true
-        case .detectorDfine:
-            return false
         }
     }
 

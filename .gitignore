@@ -1,4 +1,5 @@
 .venv/
+.venv-coreml-dfine/
 external/
 artifacts/
 YOLOX_outputs/
@@ -6,6 +7,7 @@ __pycache__/
 *.pyc
 
 data/synthetic/
+data/classifier/
 data/detector/generated/
 data/detector/generated_dfine/
 build/

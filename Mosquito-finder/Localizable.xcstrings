@@ -199,12 +199,12 @@
         }
       }
     },
-    "D-FINE is kept as a research path and is not enabled until accuracy improves.": {
+    "D-FINE becomes selectable after the converted CoreML detector is bundled.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "D-FINE 保留为研究路线，准确率提升前不开放测试。"
+            "value": "D-FINE 转换成 CoreML 并内置后会自动变为可选。"
           }
         }
       }

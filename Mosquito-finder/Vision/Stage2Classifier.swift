@@ -186,7 +186,7 @@ class Stage2Classifier: ObservableObject {
         }
 
         if let featureObservations = request.results as? [VNCoreMLFeatureValueObservation],
-           let confidence = bestDetectorConfidence(in: featureObservations) {
+           let confidence = bestFeatureDetectorConfidence(in: featureObservations) {
             return ClassificationResult(
                 isMosquito: confidence >= confidenceThreshold,
                 confidence: confidence,
@@ -197,7 +197,31 @@ class Stage2Classifier: ObservableObject {
         return nil
     }
 
-    private func bestDetectorConfidence(in observations: [VNCoreMLFeatureValueObservation]) -> Float? {
+    private func bestFeatureDetectorConfidence(in observations: [VNCoreMLFeatureValueObservation]) -> Float? {
+        if modelMode == .detectorDfine, let confidence = bestDfineConfidence(in: observations) {
+            return confidence
+        }
+        return bestYoloxConfidence(in: observations)
+    }
+
+    private func bestDfineConfidence(in observations: [VNCoreMLFeatureValueObservation]) -> Float? {
+        let scoreObservation = observations.first {
+            $0.featureName.lowercased().contains("score")
+        }
+
+        guard let scores = scoreObservation?.featureValue.multiArrayValue else {
+            return nil
+        }
+
+        var bestScore: Float = 0
+        for index in 0..<scores.count {
+            bestScore = max(bestScore, Float(truncating: scores[index]))
+        }
+
+        return bestScore
+    }
+
+    private func bestYoloxConfidence(in observations: [VNCoreMLFeatureValueObservation]) -> Float? {
         for observation in observations {
             guard let scores = observation.featureValue.multiArrayValue,
                   scores.shape.count >= 3,

@@ -337,7 +337,7 @@ struct SettingsView: View {
         case .detectorYolox:
             return "YOLOX detector is bundled and uses the best current mosquito detector."
         case .detectorDfine:
-            return "D-FINE is kept as a research path and is not enabled until accuracy improves."
+            return "D-FINE becomes selectable after the converted CoreML detector is bundled."
         }
     }
 }
