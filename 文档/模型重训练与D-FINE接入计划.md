@@ -6,14 +6,14 @@
 
 1. 用同一批强化检测数据重训 YOLOX，更新 `YoloxMosquitoDetector.mlmodel`。
 2. 从检测数据裁剪 Stage-2 ROI，重训 `MosquitoClassifier.mlmodel`。
-3. 将训练好的 D-FINE 权重规范转换成 App 可加载的 `DfineMosquitoDetector.mlmodel`。
+3. 将训练好的 D-FINE 权重规范转换成 App 可加载的 `DfineMosquitoDetector.mlpackage`。
 
 ## 当前判断
 
 - D-FINE 变好主要来自数据和验证方式：更大的 `generated_dfine` 数据集、更多 hard negative、低阳性率 `reality2017` 验证集，以及更长训练。
 - YOLOX 旧模型只吃了早期 `generated` 数据，训练轮数也短，应该复用 `generated_dfine` 重训。
 - `MosquitoClassifier` 是 64x64 二分类器，不能直接吃 COCO 检测标注；需要先从检测框和负样本区域裁剪 ROI。
-- D-FINE 接入 App 的标准链路是 `pth -> ONNX 留档 -> CoreML -> Xcode target -> Vision 输出解析`。当前已验证 `best_stg2.pth` 可以稳定导出固定 416 输入的 ONNX；CoreML 最后一跳需要做结构替换，因为 D-FINE ONNX 仍包含 CoreML 旧转换器不支持的算子。
+- D-FINE 接入 App 的标准链路是 `pth -> ONNX 留档 -> CoreML mlpackage -> Xcode target -> Vision 输出解析`。当前已验证 `best_stg2.pth` 可以稳定导出固定 416 输入的 ONNX，并已通过 CoreMLTools 的 PyTorch 路径导出 `DfineMosquitoDetector.mlpackage`。
 
 ## 分阶段实施
 
@@ -38,7 +38,8 @@
 - `training/export_dfine_coreml.py`
   - 读取 D-FINE `best_stg2.pth`
   - 导出固定 416 输入的单输入 ONNX 留档
-  - 尝试转换为 `DfineMosquitoDetector.mlmodel`
+  - 将 D-FINE Integral 中 CoreMLTools 不接受的 `F.linear` 改写为等价的 `softmax * weight -> sum`
+  - 转换为 `DfineMosquitoDetector.mlpackage`，输出 raw `scores` 和 normalized `boxes`
 
 - App 端补齐 D-FINE feature 输出解析：
   - D-FINE 输出 `scores` 时，App 可从 `VNCoreMLFeatureValueObservation` 中取最大置信度。
@@ -70,32 +71,35 @@ PYTHONPATH=external/YOLOX:. .venv/bin/python external/YOLOX/tools/train.py \
 # 4. 导出 D-FINE CoreML
 .venv/bin/python training/export_dfine_coreml.py \
   --checkpoint artifacts/dfine_mosquito_n_long/best_stg2.pth \
-  --mlmodel-output Mosquito-finder/DfineMosquitoDetector.mlmodel
+  --mlmodel-output Mosquito-finder/DfineMosquitoDetector.mlpackage
 ```
 
 ## D-FINE CoreML 转换状态
 
 已验证：
 
-- `training/export_dfine_coreml.py --skip-coreml` 可以从 `best_stg2.pth` 导出 `DfineMosquitoDetectorScores.onnx`。
+- `training/export_dfine_coreml.py` 可以从 `best_stg2.pth` 导出 `DfineMosquitoDetectorScores.onnx`。
 - 隔离环境 `.venv-coreml-dfine` 中，`onnxsim` 可以进一步生成 `DfineMosquitoDetectorScores.sim.onnx`。
 - CoreMLTools 9 的 PyTorch trace 路径会卡在 D-FINE decoder 的 `linear` shape。
 - CoreMLTools 4.x 的 ONNX converter 能读简化 ONNX，但不支持 D-FINE 图中的 `GatherElements` 和 `GridSample`。
 - PyPI 上 Python 3.9 可装的 `onnx-coreml` 与 CoreMLTools 4.x API 不匹配，缺 `coremltools.converters.nnssa`。
+- 将 Integral 的 `F.linear` 改写为等价乘加后，CoreMLTools 9 可以成功导出完整 D-FINE raw 输出模型。
+- `Mosquito-finder/DfineMosquitoDetector.mlpackage` 已通过 `coremlc` 编译。
+- Xcode 已能在 build 阶段把 `.mlpackage` 编译进 App，产物为 `DfineMosquitoDetector.mlmodelc`。
 
-因此，D-FINE 端侧接入不再继续靠版本碰运气，后续应走结构替换路线：
+因此，D-FINE 端侧接入已经打通到 CoreML/Xcode build 层。下一步重点从“转换”转为“真机验收”：
 
-1. 保留 D-FINE backbone/encoder 主体。
-2. 替换或重写含 `GridSample` / `GatherElements` 的 decoder/postprocess。
-3. 导出 CoreML 友好的 score-only wrapper。
-4. 通过 `coremlc` 和 App 真机性能验证后再内置。
+1. 在 App 内切换到 `D-FINE Detector`，确认模型可加载。
+2. 验证 `scores` 输出解析和阈值是否匹配真实效果。
+3. 测量真机单次推理耗时和发热。
+4. 与 YOLOX / CoreML Strict 做同场景误报、漏报对比。
 
 ### Phase 3：验收与选择默认模型
 
 验收顺序：
 
 1. 编译验证：`xcodebuild ... CODE_SIGNING_ALLOWED=NO build`
-2. CoreML 编译验证：确认 `coremlc` 能编译三个 `.mlmodel`
+2. CoreML 编译验证：确认 `coremlc` 能编译两个 `.mlmodel` 和一个 `.mlpackage`
 3. App 内切换验证：
    - `D-FINE Detector`
    - `YOLOX Detector`

@@ -15,7 +15,22 @@ DFINE_ROOT = REPO_ROOT / "external" / "D-FINE"
 DEFAULT_CONFIG = REPO_ROOT / "training" / "dfine_mosquito_n_long.yml"
 DEFAULT_CHECKPOINT = REPO_ROOT / "artifacts" / "dfine_mosquito_n_long" / "best_stg2.pth"
 DEFAULT_ONNX = REPO_ROOT / "artifacts" / "dfine_mosquito_n_long" / "DfineMosquitoDetectorScores.onnx"
-DEFAULT_MLMODEL = REPO_ROOT / "Mosquito-finder" / "DfineMosquitoDetector.mlmodel"
+DEFAULT_MLMODEL = REPO_ROOT / "Mosquito-finder" / "DfineMosquitoDetector.mlpackage"
+
+
+class CoreMLFriendlyIntegral(nn.Module):
+    """Equivalent to D-FINE Integral without F.linear, which CoreMLTools rejects here."""
+
+    def __init__(self, reg_max: int) -> None:
+        super().__init__()
+        self.reg_max = reg_max
+
+    def forward(self, x: torch.Tensor, project: torch.Tensor) -> torch.Tensor:
+        shape = x.shape
+        x = torch.softmax(x.reshape(-1, self.reg_max + 1), dim=1)
+        weights = project.to(x.device).reshape(1, self.reg_max + 1)
+        x = (x * weights).sum(dim=1, keepdim=True).reshape(-1, 4)
+        return x.reshape(list(shape[:-1]) + [-1])
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -28,10 +43,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--mlmodel-output", type=Path, default=DEFAULT_MLMODEL)
     parser.add_argument("--image-size", type=int, default=416)
     parser.add_argument("--skip-coreml", action="store_true")
+    parser.add_argument(
+        "--raw-outputs",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Export raw scores and boxes instead of top-k postprocessed scores.",
+    )
     return parser
 
 
-def load_dfine_model(config_path: Path, checkpoint_path: Path) -> nn.Module:
+def load_dfine_model(config_path: Path, checkpoint_path: Path, raw_outputs: bool) -> nn.Module:
     sys.path.insert(0, str(DFINE_ROOT))
     from src.core import YAMLConfig  # type: ignore
 
@@ -47,9 +68,14 @@ def load_dfine_model(config_path: Path, checkpoint_path: Path) -> nn.Module:
         def __init__(self) -> None:
             super().__init__()
             self.model = cfg.model.deploy()
+            self.model.decoder.integral = CoreMLFriendlyIntegral(self.model.decoder.reg_max)
             self.postprocessor = cfg.postprocessor.deploy()
 
         def forward(self, images: torch.Tensor):
+            outputs = self.model(images)
+            if raw_outputs:
+                return torch.sigmoid(outputs["pred_logits"]), outputs["pred_boxes"]
+
             batch_size = images.shape[0]
             target_sizes = torch.full(
                 (batch_size, 2),
@@ -57,9 +83,8 @@ def load_dfine_model(config_path: Path, checkpoint_path: Path) -> nn.Module:
                 dtype=torch.float32,
                 device=images.device,
             )
-            outputs = self.model(images)
-            _, _, scores = self.postprocessor(outputs, target_sizes)
-            return scores
+            _, boxes, scores = self.postprocessor(outputs, target_sizes)
+            return scores, boxes
 
     model = FixedSizeDfine()
     model.eval()
@@ -74,8 +99,8 @@ def export_onnx(model: nn.Module, output_path: Path, image_size: int) -> None:
         sample,
         str(output_path),
         input_names=["images"],
-        output_names=["scores"],
-        dynamic_axes={"images": {0: "N"}, "scores": {0: "N"}},
+        output_names=["scores", "boxes"],
+        dynamic_axes={"images": {0: "N"}, "scores": {0: "N"}, "boxes": {0: "N"}},
         opset_version=16,
         do_constant_folding=True,
     )
@@ -98,19 +123,25 @@ def export_coreml(model: nn.Module, output_path: Path, image_size: int) -> None:
                 scale=1.0 / 255.0,
             )
         ],
-        outputs=[ct.TensorType(name="scores")],
+        outputs=[ct.TensorType(name="scores"), ct.TensorType(name="boxes")],
         minimum_deployment_target=ct.target.iOS16,
         convert_to="mlprogram",
     )
-    coreml_model.short_description = "D-FINE mosquito detector for Mosquito Finder. Output: scores."
+    coreml_model.short_description = (
+        "D-FINE mosquito detector for Mosquito Finder. Outputs: scores and normalized boxes."
+    )
     coreml_model.save(str(output_path))
     print(f"CoreML written to: {output_path}")
 
 
 def main() -> None:
     args = build_parser().parse_args()
+    args.config = args.config.resolve()
+    args.checkpoint = args.checkpoint.resolve()
+    args.onnx_output = args.onnx_output.resolve()
+    args.mlmodel_output = args.mlmodel_output.resolve()
     os.chdir(DFINE_ROOT)
-    model = load_dfine_model(args.config, args.checkpoint)
+    model = load_dfine_model(args.config, args.checkpoint, args.raw_outputs)
     export_onnx(model, args.onnx_output, args.image_size)
     if not args.skip_coreml:
         export_coreml(model, args.mlmodel_output, args.image_size)
