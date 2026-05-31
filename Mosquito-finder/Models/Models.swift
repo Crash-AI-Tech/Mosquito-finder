@@ -67,7 +67,10 @@ enum RuntimeModelMode: String, CaseIterable, Identifiable {
     }
 
     static var preferredDefault: RuntimeModelMode {
-        RuntimeModelMode.detectorYolox.isBundled ? .detectorYolox : .coreMLStrict
+        if RuntimeModelMode.detectorDfine.isBundled {
+            return .detectorDfine
+        }
+        return RuntimeModelMode.detectorYolox.isBundled ? .detectorYolox : .coreMLStrict
     }
 }
 
@@ -124,12 +127,12 @@ struct RuntimeDetectionSettings {
 
     static let dfineHighPrecision = RuntimeDetectionSettings(
         modelMode: .detectorDfine,
-        stage2ConfidenceThreshold: 0.80,
-        minZoomFactor: 1.4,
-        centerRegionRatio: 0.32,
-        minTargetSize: 16,
-        stableFrameCount: 4,
-        stage2Cooldown: 0.45,
+        stage2ConfidenceThreshold: 0.50,
+        minZoomFactor: 1.0,
+        centerRegionRatio: 0.50,
+        minTargetSize: 8,
+        stableFrameCount: 2,
+        stage2Cooldown: 0.25,
         maxStage1Detections: 8,
         stage1LocalContrastThreshold: 0.06,
         stage1BackgroundVarianceThreshold: 0.018
@@ -151,9 +154,23 @@ struct RuntimeDetectionSettings {
     static var current: RuntimeDetectionSettings {
         let defaults = UserDefaults.standard
         let storedMode = defaults.string(forKey: "detectionModelMode") ?? RuntimeModelMode.preferredDefault.rawValue
-        let requestedMode = RuntimeModelMode(rawValue: storedMode) ?? RuntimeModelMode.preferredDefault
+        var requestedMode = RuntimeModelMode(rawValue: storedMode) ?? RuntimeModelMode.preferredDefault
+
+        if requestedMode == .detectorYolox,
+           RuntimeModelMode.detectorDfine.isBundled,
+           !defaults.bool(forKey: "didMigrateToDfineFullFrameDetector") {
+            requestedMode = .detectorDfine
+            defaults.set(true, forKey: "didMigrateToDfineFullFrameDetector")
+            defaults.set(requestedMode.rawValue, forKey: "detectionModelMode")
+        }
+
         let mode = requestedMode.isBundled && requestedMode.isProductionReady ? requestedMode : RuntimeModelMode.preferredDefault
         let preset = RuntimeDetectionSettings.preset(for: mode)
+
+        if mode == .detectorDfine, !defaults.bool(forKey: "didApplyDfineFullFrameSettings") {
+            defaults.set(true, forKey: "didApplyDfineFullFrameSettings")
+            applyPreset(.detectorDfine)
+        }
 
         return RuntimeDetectionSettings(
             modelMode: mode,

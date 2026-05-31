@@ -101,6 +101,7 @@ class ObjectTracker: ObservableObject {
     
     /// 补偿相机运动：将方框相对于背景固定
     private func compensateCameraMotion(in currentBuffer: CVPixelBuffer, imageSize: CGSize) {
+        guard useVisionTracking else { return }
         guard let lastBuffer = lastFramePixelBuffer else { return }
         
         let registrationRequest = VNTranslationalImageRegistrationRequest(targetedCVPixelBuffer: currentBuffer)
@@ -224,6 +225,10 @@ class ObjectTracker: ObservableObject {
             )
             
             trackedTargets[index].boundingBox = newBox
+            trackedTargets[index].trackingConfidence = max(
+                trackedTargets[index].trackingConfidence * 0.6,
+                detection.confidence
+            )
             trackedTargets[index].lastUpdated = Date()
             trackedTargets[index].framesSinceLastUpdate = 0
             trackedTargets[index].detectedFrameCount += 1 // 持续检测计数

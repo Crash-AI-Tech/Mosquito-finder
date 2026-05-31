@@ -186,6 +186,12 @@ struct SettingsView: View {
                             applyPreset(.detectorYolox)
                         }
                     }
+
+                    if RuntimeModelMode.detectorDfine.isBundled {
+                        Button("D-FINE Detector Preset") {
+                            applyPreset(.detectorDfine)
+                        }
+                    }
                 }
 
                 Section(header: Text("Model Availability")) {
@@ -323,7 +329,7 @@ struct SettingsView: View {
 
     private func modelStatusBadge(_ mode: RuntimeModelMode) -> LocalizedStringKey {
         if !mode.isBundled { return "Not installed" }
-        if mode == .detectorYolox { return "Recommended" }
+        if mode == .detectorDfine { return "Recommended" }
         if mode.isProductionReady { return "Installed" }
         return "Needs training"
     }
@@ -335,9 +341,9 @@ struct SettingsView: View {
         case .coreMLBalanced:
             return "Balanced CoreML mode is faster to confirm targets."
         case .detectorYolox:
-            return "YOLOX detector is bundled and uses the best current mosquito detector."
+            return "YOLOX detector is bundled for comparison testing."
         case .detectorDfine:
-            return "D-FINE becomes selectable after the converted CoreML detector is bundled."
+            return "D-FINE runs the full-frame detector and confirms targets from model confidence."
         }
     }
 }

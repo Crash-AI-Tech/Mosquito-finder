@@ -166,10 +166,15 @@ class TargetCoordinator: ObservableObject {
 
     private func applyRuntimeSettings() {
         let settings = RuntimeDetectionSettings.current
+        stage1Detector.modelMode = settings.modelMode
         stage1Detector.maxDetections = settings.maxStage1Detections
+        stage1Detector.detectorCandidateThreshold = settings.modelMode.isDetectorMode
+            ? min(0.35, settings.stage2ConfidenceThreshold * 0.7)
+            : 0.35
         stage1Detector.localContrastThreshold = settings.stage1LocalContrastThreshold
         stage1Detector.backgroundVarianceThreshold = settings.stage1BackgroundVarianceThreshold
         objectTracker.requiredStableFrames = settings.stableFrameCount
+        objectTracker.useVisionTracking = !settings.modelMode.isDetectorMode
         stage2Classifier.apply(settings: settings)
         triggerEvaluator.apply(settings: settings)
         stage2Cooldown = settings.stage2Cooldown
@@ -200,6 +205,16 @@ class TargetCoordinator: ObservableObject {
         if let lastTime = lastStage2Time, Date().timeIntervalSince(lastTime) < stage2Cooldown {
             return
         }
+
+        let settings = RuntimeDetectionSettings.current
+
+        if settings.modelMode.isDetectorMode {
+            guard let target = bestStableDetectorTarget(minConfidence: settings.stage2ConfidenceThreshold) else {
+                return
+            }
+            performStage2Classification(target: target, in: pixelBuffer)
+            return
+        }
         
         // 获取缓冲区中心附近的稳定目标
         // centerRadius 与 TriggerEvaluator.centerRegionRatio 保持一致，避免漏选
@@ -221,6 +236,13 @@ class TargetCoordinator: ObservableObject {
             performStage2Classification(target: centerTarget, in: pixelBuffer)
         }
     }
+
+    private func bestStableDetectorTarget(minConfidence: Float) -> TrackedTarget? {
+        objectTracker.trackedTargets
+            .filter { $0.isStable && $0.trackingConfidence >= minConfidence }
+            .sorted { $0.trackingConfidence > $1.trackingConfidence }
+            .first
+    }
     
     private func performStage2Classification(target: TrackedTarget, in pixelBuffer: CVPixelBuffer) {
         lastStage2Time = Date()
@@ -231,8 +253,17 @@ class TargetCoordinator: ObservableObject {
             self.activeStage2Target = self.objectTracker.trackedTargets.first(where: { $0.id == target.id }) ?? target
         }
         
-        // 执行分类
-        let result = stage2Classifier.classify(region: target.boundingBox, in: pixelBuffer)
+        let settings = RuntimeDetectionSettings.current
+
+        // 检测模型已经在 Stage 1 对全帧输出了真实候选框和置信度。
+        // Stage 2 在这里做同一条模型链路的高阈值确认，避免再次裁剪 ROI 导致框/分数错位。
+        let result = settings.modelMode.isDetectorMode
+            ? ClassificationResult(
+                isMosquito: target.trackingConfidence >= settings.stage2ConfidenceThreshold,
+                confidence: target.trackingConfidence,
+                processingTime: 0
+            )
+            : stage2Classifier.classify(region: target.boundingBox, in: pixelBuffer)
         
         DispatchQueue.main.async {
             self.currentClassification = result

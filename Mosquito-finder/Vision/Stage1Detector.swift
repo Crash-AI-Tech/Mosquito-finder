@@ -9,6 +9,7 @@ import Foundation
 import Combine
 import CoreImage
 import CoreVideo
+import CoreML
 import Vision
 import UIKit
 
@@ -41,12 +42,20 @@ class Stage1Detector: ObservableObject {
 
     /// 中心暗点与周围背景的最小亮度差
     var localContrastThreshold: Float = 0.08
+
+    /// 当前运行模型模式
+    var modelMode: RuntimeModelMode = .coreMLStrict
+
+    /// 检测模型候选阈值。Stage 1 用较低阈值提高召回，Stage 2 再做确认。
+    var detectorCandidateThreshold: Float = 0.35
     
     // MARK: - Private Properties
     
     private let ciContext = CIContext(options: [.useSoftwareRenderer: false, .priorityRequestLow: true])
     private var lastFrameTime: Date?
     private var isBusy = false
+    private var loadedDetectorMode: RuntimeModelMode?
+    private var detectorModel: MLModel?
     
     // MARK: - Public Methods
     
@@ -81,6 +90,12 @@ class Stage1Detector: ObservableObject {
             isBusy = false
         }
         
+        if modelMode == .detectorDfine,
+           let detectorRegions = detectWithFullFrameDetector(pixelBuffer: pixelBuffer) {
+            cachedRegions = detectorRegions
+            return cachedRegions
+        }
+
         let width = CVPixelBufferGetWidth(pixelBuffer)
         let height = CVPixelBufferGetHeight(pixelBuffer)
         
@@ -157,5 +172,139 @@ class Stage1Detector: ObservableObject {
         }
         
         return cachedRegions
+    }
+
+    // MARK: - Full-frame detector path
+
+    private func detectWithFullFrameDetector(pixelBuffer: CVPixelBuffer) -> [SuspectRegion]? {
+        guard let model = loadDetectorModel(for: modelMode),
+              let resizedBuffer = resize(pixelBuffer: pixelBuffer, width: 416, height: 416) else {
+            return nil
+        }
+
+        do {
+            let input = try MLDictionaryFeatureProvider(dictionary: [
+                "images": MLFeatureValue(pixelBuffer: resizedBuffer)
+            ])
+            let output = try model.prediction(from: input)
+            return parseDfineDetections(
+                scores: output.featureValue(for: "scores")?.multiArrayValue,
+                boxes: output.featureValue(for: "boxes")?.multiArrayValue,
+                imageSize: CGSize(
+                    width: CVPixelBufferGetWidth(pixelBuffer),
+                    height: CVPixelBufferGetHeight(pixelBuffer)
+                )
+            )
+        } catch {
+            print("D-FINE Stage 1 检测失败: \(error)")
+            return nil
+        }
+    }
+
+    private func loadDetectorModel(for mode: RuntimeModelMode) -> MLModel? {
+        if loadedDetectorMode == mode, let detectorModel {
+            return detectorModel
+        }
+
+        guard let modelName = mode.bundledModelName,
+              let modelURL = Bundle.main.url(forResource: modelName, withExtension: "mlmodelc") else {
+            detectorModel = nil
+            loadedDetectorMode = nil
+            return nil
+        }
+
+        do {
+            let config = MLModelConfiguration()
+            config.computeUnits = .all
+            let model = try MLModel(contentsOf: modelURL, configuration: config)
+            detectorModel = model
+            loadedDetectorMode = mode
+            return model
+        } catch {
+            print("D-FINE Stage 1 模型加载失败: \(error)")
+            detectorModel = nil
+            loadedDetectorMode = nil
+            return nil
+        }
+    }
+
+    private func resize(pixelBuffer: CVPixelBuffer, width: Int, height: Int) -> CVPixelBuffer? {
+        var resizedBuffer: CVPixelBuffer?
+        let attrs = [
+            kCVPixelBufferCGImageCompatibilityKey: true,
+            kCVPixelBufferCGBitmapContextCompatibilityKey: true
+        ] as CFDictionary
+
+        let status = CVPixelBufferCreate(
+            kCFAllocatorDefault,
+            width,
+            height,
+            kCVPixelFormatType_32BGRA,
+            attrs,
+            &resizedBuffer
+        )
+
+        guard status == kCVReturnSuccess, let resizedBuffer else { return nil }
+
+        let image = CIImage(cvPixelBuffer: pixelBuffer)
+        let scaleX = CGFloat(width) / image.extent.width
+        let scaleY = CGFloat(height) / image.extent.height
+        let resizedImage = image.transformed(by: CGAffineTransform(scaleX: scaleX, y: scaleY))
+        ciContext.render(resizedImage, to: resizedBuffer)
+        return resizedBuffer
+    }
+
+    private func parseDfineDetections(
+        scores: MLMultiArray?,
+        boxes: MLMultiArray?,
+        imageSize: CGSize
+    ) -> [SuspectRegion] {
+        guard let scores, let boxes else { return [] }
+
+        let candidateCount = min(scores.count, boxes.shape.count >= 2 ? boxes.shape[boxes.shape.count - 2].intValue : scores.count)
+        var detections: [SuspectRegion] = []
+
+        for index in 0..<candidateCount {
+            let scoreIndexes = [NSNumber(value: 0), NSNumber(value: index), NSNumber(value: 0)]
+            let confidence = Float(truncating: scores[scoreIndexes])
+            guard confidence >= detectorCandidateThreshold else { continue }
+
+            let cx = CGFloat(truncating: boxes[[NSNumber(value: 0), NSNumber(value: index), NSNumber(value: 0)]])
+            let cy = CGFloat(truncating: boxes[[NSNumber(value: 0), NSNumber(value: index), NSNumber(value: 1)]])
+            let width = CGFloat(truncating: boxes[[NSNumber(value: 0), NSNumber(value: index), NSNumber(value: 2)]])
+            let height = CGFloat(truncating: boxes[[NSNumber(value: 0), NSNumber(value: index), NSNumber(value: 3)]])
+
+            let rect = clamp(
+                CGRect(
+                    x: (cx - width / 2) * imageSize.width,
+                    y: (cy - height / 2) * imageSize.height,
+                    width: width * imageSize.width,
+                    height: height * imageSize.height
+                ),
+                to: imageSize
+            )
+
+            guard rect.width >= 4, rect.height >= 4 else { continue }
+            detections.append(SuspectRegion(boundingBox: rect, confidence: confidence))
+        }
+
+        return detections
+            .sorted { $0.confidence > $1.confidence }
+            .prefix(maxDetections)
+            .map { $0 }
+    }
+
+    private func clamp(_ rect: CGRect, to imageSize: CGSize) -> CGRect {
+        let x = max(0, min(rect.origin.x, imageSize.width))
+        let y = max(0, min(rect.origin.y, imageSize.height))
+        let maxWidth = max(0, imageSize.width - x)
+        let maxHeight = max(0, imageSize.height - y)
+
+        return CGRect(
+            x: x,
+            y: y,
+            width: max(0, min(rect.width, maxWidth)),
+            height: max(0, min(rect.height, maxHeight))
+        )
     }
 }
