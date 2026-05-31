@@ -122,13 +122,28 @@ struct RuntimeDetectionSettings {
         stage1BackgroundVarianceThreshold: 0.018
     )
 
+    static let dfineHighPrecision = RuntimeDetectionSettings(
+        modelMode: .detectorDfine,
+        stage2ConfidenceThreshold: 0.80,
+        minZoomFactor: 1.4,
+        centerRegionRatio: 0.32,
+        minTargetSize: 16,
+        stableFrameCount: 4,
+        stage2Cooldown: 0.45,
+        maxStage1Detections: 8,
+        stage1LocalContrastThreshold: 0.06,
+        stage1BackgroundVarianceThreshold: 0.018
+    )
+
     static func preset(for mode: RuntimeModelMode) -> RuntimeDetectionSettings {
         switch mode {
         case .coreMLBalanced:
             return balanced
         case .detectorYolox:
             return yoloxHighPrecision
-        case .coreMLStrict, .detectorDfine:
+        case .detectorDfine:
+            return dfineHighPrecision
+        case .coreMLStrict:
             return strict
         }
     }

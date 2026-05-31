@@ -94,6 +94,26 @@ PYTHONPATH=external/YOLOX:. .venv/bin/python external/YOLOX/tools/train.py \
 3. 测量真机单次推理耗时和发热。
 4. 与 YOLOX / CoreML Strict 做同场景误报、漏报对比。
 
+## D-FINE CoreML 本地验收
+
+已新增 `training/validate_coreml_detectors.py`，用于直接跑 CoreML Runtime，扫描 COCO split 的正负样本置信度分布。
+
+当前 `DfineMosquitoDetector.mlpackage` 本地结果：
+
+- `val2017`
+  - 480 张，300 正样本，180 负样本
+  - 平均推理约 5.65ms，p95 约 7.18ms
+  - 阈值 0.80：precision 0.995，recall 0.727
+  - 阈值 0.90：recall 0.003，过严
+
+- `reality2017`
+  - 720 张，192 正样本，528 负样本
+  - 平均推理约 5.67ms，p95 约 7.91ms
+  - 阈值 0.80：precision 1.000，recall 0.714
+  - 阈值 0.90：recall 0.005，过严
+
+因此 App 中 D-FINE 使用独立高精度预设，`stage2ConfidenceThreshold = 0.80`。这个阈值优先保证真实负样本不误报，后续真机验收时再根据实际摄像头画面微调。
+
 ### Phase 3：验收与选择默认模型
 
 验收顺序：
