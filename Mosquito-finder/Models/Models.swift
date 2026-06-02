@@ -75,6 +75,8 @@ enum RuntimeModelMode: String, CaseIterable, Identifiable {
 }
 
 struct RuntimeDetectionSettings {
+    private static let dfineFullFrameSettingsVersion = 2
+
     var modelMode: RuntimeModelMode
     var stage2ConfidenceThreshold: Float
     var minZoomFactor: CGFloat
@@ -164,11 +166,19 @@ struct RuntimeDetectionSettings {
             defaults.set(requestedMode.rawValue, forKey: "detectionModelMode")
         }
 
+        if RuntimeModelMode.detectorDfine.isBundled,
+           defaults.integer(forKey: "dfineFullFrameSettingsVersion") < dfineFullFrameSettingsVersion {
+            requestedMode = .detectorDfine
+            defaults.set(requestedMode.rawValue, forKey: "detectionModelMode")
+        }
+
         let mode = requestedMode.isBundled && requestedMode.isProductionReady ? requestedMode : RuntimeModelMode.preferredDefault
         let preset = RuntimeDetectionSettings.preset(for: mode)
 
-        if mode == .detectorDfine, !defaults.bool(forKey: "didApplyDfineFullFrameSettings") {
+        if mode == .detectorDfine,
+           defaults.integer(forKey: "dfineFullFrameSettingsVersion") < dfineFullFrameSettingsVersion {
             defaults.set(true, forKey: "didApplyDfineFullFrameSettings")
+            defaults.set(dfineFullFrameSettingsVersion, forKey: "dfineFullFrameSettingsVersion")
             applyPreset(.detectorDfine)
         }
 
@@ -199,6 +209,9 @@ struct RuntimeDetectionSettings {
         defaults.set(preset.maxStage1Detections, forKey: "maxStage1Detections")
         defaults.set(Double(preset.stage1LocalContrastThreshold), forKey: "stage1LocalContrastThreshold")
         defaults.set(Double(preset.stage1BackgroundVarianceThreshold), forKey: "stage1BackgroundVarianceThreshold")
+        if mode == .detectorDfine {
+            defaults.set(dfineFullFrameSettingsVersion, forKey: "dfineFullFrameSettingsVersion")
+        }
     }
 }
 

@@ -218,7 +218,7 @@ struct SettingsView: View {
                     settingSlider(
                         title: "Center Region",
                         value: $centerRegionRatio,
-                        range: 0.15...0.45,
+                        range: 0.15...0.60,
                         format: "%.2f"
                     )
                     settingSlider(
