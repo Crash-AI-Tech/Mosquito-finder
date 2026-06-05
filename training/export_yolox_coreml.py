@@ -10,7 +10,10 @@ import torch.nn as nn
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-YOLOX_ROOT = REPO_ROOT / "external" / "YOLOX"
+CODE_PROJECT_ROOT = REPO_ROOT.parents[1]
+LOCAL_YOLOX_ROOT = REPO_ROOT / "external" / "YOLOX"
+SHARED_YOLOX_ROOT = CODE_PROJECT_ROOT / "ml-frameworks" / "YOLOX"
+YOLOX_ROOT = LOCAL_YOLOX_ROOT if LOCAL_YOLOX_ROOT.exists() else SHARED_YOLOX_ROOT
 DEFAULT_EXP = REPO_ROOT / "training" / "yolox_mosquito_nano_reality.py"
 DEFAULT_CHECKPOINT = REPO_ROOT / "YOLOX_outputs" / "yolox_mosquito_nano_reality" / "best_ckpt.pth"
 DEFAULT_OUTPUT = REPO_ROOT / "Mosquito-finder" / "YoloxMosquitoDetector.mlmodel"

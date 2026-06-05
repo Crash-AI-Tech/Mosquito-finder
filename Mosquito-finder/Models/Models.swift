@@ -116,7 +116,7 @@ struct RuntimeDetectionSettings {
 
     static let yoloxHighPrecision = RuntimeDetectionSettings(
         modelMode: .detectorYolox,
-        stage2ConfidenceThreshold: 0.78,
+        stage2ConfidenceThreshold: 0.70,
         minZoomFactor: 1.4,
         centerRegionRatio: 0.32,
         minTargetSize: 16,

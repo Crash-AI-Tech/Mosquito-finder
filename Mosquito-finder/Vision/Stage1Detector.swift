@@ -90,7 +90,7 @@ class Stage1Detector: ObservableObject {
             isBusy = false
         }
         
-        if modelMode == .detectorDfine,
+        if modelMode.isDetectorMode,
            let detectorRegions = detectWithFullFrameDetector(pixelBuffer: pixelBuffer) {
             cachedRegions = detectorRegions
             return cachedRegions
@@ -187,16 +187,28 @@ class Stage1Detector: ObservableObject {
                 "images": MLFeatureValue(pixelBuffer: resizedBuffer)
             ])
             let output = try model.prediction(from: input)
-            return parseDfineDetections(
-                scores: output.featureValue(for: "scores")?.multiArrayValue,
-                boxes: output.featureValue(for: "boxes")?.multiArrayValue,
-                imageSize: CGSize(
-                    width: CVPixelBufferGetWidth(pixelBuffer),
-                    height: CVPixelBufferGetHeight(pixelBuffer)
-                )
+            let imageSize = CGSize(
+                width: CVPixelBufferGetWidth(pixelBuffer),
+                height: CVPixelBufferGetHeight(pixelBuffer)
             )
+
+            switch modelMode {
+            case .detectorDfine:
+                return parseDfineDetections(
+                    scores: output.featureValue(for: "scores")?.multiArrayValue,
+                    boxes: output.featureValue(for: "boxes")?.multiArrayValue,
+                    imageSize: imageSize
+                )
+            case .detectorYolox:
+                return parseYoloxDetections(
+                    output: output.featureValue(for: "output")?.multiArrayValue,
+                    imageSize: imageSize
+                )
+            case .coreMLStrict, .coreMLBalanced:
+                return nil
+            }
         } catch {
-            print("D-FINE Stage 1 检测失败: \(error)")
+            print("Detector Stage 1 检测失败: \(error)")
             return nil
         }
     }
@@ -221,7 +233,7 @@ class Stage1Detector: ObservableObject {
             loadedDetectorMode = mode
             return model
         } catch {
-            print("D-FINE Stage 1 模型加载失败: \(error)")
+            print("Detector Stage 1 模型加载失败: \(error)")
             detectorModel = nil
             loadedDetectorMode = nil
             return nil
@@ -292,6 +304,81 @@ class Stage1Detector: ObservableObject {
             .sorted { $0.confidence > $1.confidence }
             .prefix(maxDetections)
             .map { $0 }
+    }
+
+    private func parseYoloxDetections(
+        output: MLMultiArray?,
+        imageSize: CGSize
+    ) -> [SuspectRegion] {
+        guard let output, output.shape.count >= 3 else { return [] }
+
+        let candidateCount = output.shape[output.shape.count - 2].intValue
+        let valueCount = output.shape[output.shape.count - 1].intValue
+        guard valueCount >= 5 else { return [] }
+
+        var detections: [SuspectRegion] = []
+        for index in 0..<candidateCount {
+            let objectness = detectorValue(output, candidate: index, value: 4)
+            let classConfidence = valueCount > 5 ? detectorValue(output, candidate: index, value: 5) : 1
+            let confidence = objectness * classConfidence
+            guard confidence >= detectorCandidateThreshold else { continue }
+
+            let x1 = CGFloat(detectorValue(output, candidate: index, value: 0)) / 416.0 * imageSize.width
+            let y1 = CGFloat(detectorValue(output, candidate: index, value: 1)) / 416.0 * imageSize.height
+            let x2 = CGFloat(detectorValue(output, candidate: index, value: 2)) / 416.0 * imageSize.width
+            let y2 = CGFloat(detectorValue(output, candidate: index, value: 3)) / 416.0 * imageSize.height
+            let rect = clamp(
+                CGRect(
+                    x: min(x1, x2),
+                    y: min(y1, y2),
+                    width: abs(x2 - x1),
+                    height: abs(y2 - y1)
+                ),
+                to: imageSize
+            )
+
+            guard rect.width >= 4, rect.height >= 4 else { continue }
+            detections.append(SuspectRegion(boundingBox: rect, confidence: confidence))
+        }
+
+        return nonMaximumSuppressed(detections)
+            .prefix(maxDetections)
+            .map { $0 }
+    }
+
+    private func nonMaximumSuppressed(_ detections: [SuspectRegion], iouThreshold: CGFloat = 0.45) -> [SuspectRegion] {
+        var selected: [SuspectRegion] = []
+        let sortedDetections = detections.sorted { $0.confidence > $1.confidence }
+
+        for detection in sortedDetections {
+            let overlapsSelected = selected.contains {
+                intersectionOverUnion(detection.boundingBox, $0.boundingBox) >= iouThreshold
+            }
+            if !overlapsSelected {
+                selected.append(detection)
+            }
+        }
+
+        return selected
+    }
+
+    private func intersectionOverUnion(_ lhs: CGRect, _ rhs: CGRect) -> CGFloat {
+        let intersection = lhs.intersection(rhs)
+        guard !intersection.isNull else { return 0 }
+        let intersectionArea = intersection.width * intersection.height
+        let unionArea = lhs.width * lhs.height + rhs.width * rhs.height - intersectionArea
+        return unionArea > 0 ? intersectionArea / unionArea : 0
+    }
+
+    private func detectorValue(_ array: MLMultiArray, candidate: Int, value: Int) -> Float {
+        let indexes: [NSNumber]
+        if array.shape.count == 3 {
+            indexes = [0, NSNumber(value: candidate), NSNumber(value: value)]
+        } else {
+            indexes = [NSNumber(value: candidate), NSNumber(value: value)]
+        }
+
+        return Float(truncating: array[indexes])
     }
 
     private func clamp(_ rect: CGRect, to imageSize: CGSize) -> CGRect {

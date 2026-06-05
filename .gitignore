@@ -10,5 +10,7 @@ data/synthetic/
 data/classifier/
 data/detector/generated/
 data/detector/generated_dfine/
+data/external/
+data/processed/
 build/
 .DS_Store

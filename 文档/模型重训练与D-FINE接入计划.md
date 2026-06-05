@@ -55,7 +55,7 @@ cd /Users/nsaviour/Desktop/workplace/codeProject/Mosquito-finder
 # 1. 重训 YOLOX
 PYTHONPATH=external/YOLOX:. .venv/bin/python external/YOLOX/tools/train.py \
   -f training/yolox_mosquito_nano_reality.py \
-  -d 1 -b 4 \
+  -d 1 -b 8 \
   -c artifacts/pretrained/yolox_nano.pth
 
 # 2. 生成分类器 ROI 数据

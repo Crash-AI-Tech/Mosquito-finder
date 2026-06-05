@@ -41,8 +41,8 @@ lr_warmup_scheduler:
   warmup_duration: 80
 
 train_dataloader:
-  total_batch_size: 4
-  num_workers: 0
+  total_batch_size: 8
+  num_workers: 4
   dataset:
     img_folder: /Users/nsaviour/Desktop/workplace/codeProject/Mosquito-finder/data/detector/generated_dfine/train2017
     ann_file: /Users/nsaviour/Desktop/workplace/codeProject/Mosquito-finder/data/detector/generated_dfine/annotations/instances_train2017.json
@@ -63,8 +63,8 @@ train_dataloader:
     ema_restart_decay: 0.9999
 
 val_dataloader:
-  total_batch_size: 4
-  num_workers: 0
+  total_batch_size: 8
+  num_workers: 4
   dataset:
     img_folder: /Users/nsaviour/Desktop/workplace/codeProject/Mosquito-finder/data/detector/generated_dfine/reality2017
     ann_file: /Users/nsaviour/Desktop/workplace/codeProject/Mosquito-finder/data/detector/generated_dfine/annotations/instances_reality2017.json

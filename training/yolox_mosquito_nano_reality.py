@@ -24,7 +24,7 @@ class Exp(BaseMosquitoExp):
         self.no_aug_epochs = 4
         self.eval_interval = 2
         self.print_interval = 20
-        self.data_num_workers = 2
+        self.data_num_workers = 6
         self.basic_lr_per_img = 0.0015 / 64.0
         self.min_lr_ratio = 0.05
         self.mosaic_prob = 0.45

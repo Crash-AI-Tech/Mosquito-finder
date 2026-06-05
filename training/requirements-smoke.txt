@@ -1,0 +1,16 @@
+numpy<2
+torch
+torchvision
+pycocotools
+tabulate
+loguru
+tqdm
+opencv-python
+Pillow
+PyYAML
+tensorboard
+psutil
+faster-coco-eval>=1.6.6
+calflops
+transformers
+scipy
