@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib
 import json
 import sys
 import time
@@ -18,8 +19,6 @@ if str(YOLOX_ROOT) not in sys.path:
     sys.path.insert(0, str(YOLOX_ROOT))
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
-
-from training.yolox_kaggle_smoke import Exp  # noqa: E402
 
 
 def choose_device(requested: str) -> torch.device:
@@ -77,6 +76,7 @@ def main() -> int:
     parser.add_argument("--num-workers", type=int, default=None)
     parser.add_argument("--cache-img", choices=("none", "ram", "disk"), default="none")
     parser.add_argument("--lr", type=float, default=1e-5)
+    parser.add_argument("--exp-module", default="training.yolox_kaggle_smoke")
     parser.add_argument("--resume", default=None)
     parser.add_argument(
         "--resume-optimizer",
@@ -93,7 +93,7 @@ def main() -> int:
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    exp = Exp()
+    exp = importlib.import_module(args.exp_module).Exp()
     if args.num_workers is not None:
         exp.data_num_workers = args.num_workers
     if args.cache_img != "none":

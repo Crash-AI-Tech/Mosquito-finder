@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib
 import json
 import sys
 from dataclasses import dataclass
@@ -21,7 +22,6 @@ if str(YOLOX_ROOT) not in sys.path:
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from training.yolox_kaggle_smoke import Exp  # noqa: E402
 from yolox.data.data_augment import ValTransform  # noqa: E402
 from yolox.utils import postprocess  # noqa: E402
 
@@ -36,6 +36,7 @@ class Detection:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Evaluate YOLOX detector precision/recall on COCO annotations.")
     parser.add_argument("--checkpoint", required=True)
+    parser.add_argument("--exp-module", default="training.yolox_kaggle_smoke")
     parser.add_argument(
         "--ann-file",
         default=str(
@@ -90,8 +91,8 @@ def box_iou(box: np.ndarray, boxes: np.ndarray) -> np.ndarray:
     return inter / np.maximum(box_area + areas - inter, 1e-6)
 
 
-def load_model(checkpoint_path: Path, device: torch.device) -> tuple[Exp, torch.nn.Module]:
-    exp = Exp()
+def load_model(checkpoint_path: Path, device: torch.device, exp_module: str) -> tuple[object, torch.nn.Module]:
+    exp = importlib.import_module(exp_module).Exp()
     model = exp.get_model().to(device)
     checkpoint = torch.load(checkpoint_path, map_location="cpu")
     model.load_state_dict(checkpoint["model"] if "model" in checkpoint else checkpoint)
@@ -205,7 +206,7 @@ def main() -> int:
     }
 
     device = choose_device(args.device)
-    exp, model = load_model(Path(args.checkpoint), device)
+    exp, model = load_model(Path(args.checkpoint), device, args.exp_module)
     detections = collect_detections(
         exp=exp,
         model=model,
