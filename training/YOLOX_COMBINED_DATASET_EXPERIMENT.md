@@ -87,3 +87,72 @@ Before another full run:
    - mix Kaggle/Hugging Face with controlled sampling weights, or
    - train on Hugging Face separately and compare transfer behavior.
 4. Keep Mosquito Alert as image-level classification / candidate annotation data until bounding boxes are produced.
+
+## Follow-up Conservative Fine-tuning
+
+After the first combined run regressed, a more conservative run was tested:
+
+```bash
+python training/train_yolox_mps_smoke.py \
+  --exp-module training.yolox_combined_coco_smoke \
+  --device mps \
+  --batch-size 96 \
+  --steps 900 \
+  --print-every 100 \
+  --checkpoint-every 300 \
+  --num-workers 2 \
+  --cache-img ram \
+  --lr 1e-7 \
+  --resume artifacts/yolox_best_current/best.pt \
+  --output-dir artifacts/yolox_combined_b96_w2_ram_lr1e7_s900_resume_best
+```
+
+The run was stopped after the first useful checkpoint because the direction was already bad:
+
+| Checkpoint | Eval split | Best F1 | Precision @ best F1 | Recall @ best F1 | High precision point |
+| --- | --- | ---: | ---: | ---: | --- |
+| `step_17400.pt` | Combined val | 39.86% | 55.89% | 30.97% | none >= 95% precision |
+| `step_17400.pt` | Kaggle val | 47.81% | 56.67% | 41.34% | none >= 95% precision |
+
+This confirms that simply continuing full-model training on the merged Kaggle + Hugging Face data is not safe for the current App detector.
+
+Next lower-risk experiment: freeze the YOLOX backbone/FPN and train only the detection head on the combined data. The training script now supports:
+
+```bash
+python training/train_yolox_mps_smoke.py ... --freeze-backbone
+```
+
+The head-only path is intended to calibrate objectness/classification and box regression on the new data while preserving the existing visual features learned by the current App model.
+
+Head-only smoke run:
+
+```bash
+python training/train_yolox_mps_smoke.py \
+  --exp-module training.yolox_combined_coco_smoke \
+  --device mps \
+  --batch-size 96 \
+  --steps 300 \
+  --print-every 50 \
+  --checkpoint-every 150 \
+  --num-workers 2 \
+  --cache-img ram \
+  --lr 5e-7 \
+  --resume artifacts/yolox_best_current/best.pt \
+  --freeze-backbone \
+  --output-dir artifacts/yolox_combined_head_only_b96_lr5e7_s300_resume_best
+```
+
+Result:
+
+- Runtime: `141.138s`
+- Speed: `0.470s/step`
+- Checkpoint: `artifacts/yolox_combined_head_only_b96_lr5e7_s300_resume_best/latest.pt`
+
+| Checkpoint | Eval split | Best F1 | Precision @ best F1 | Recall @ best F1 | High precision point |
+| --- | --- | ---: | ---: | ---: | --- |
+| head-only `latest.pt` | Combined val | 31.90% | 38.24% | 27.36% | none >= 95% precision |
+| head-only `latest.pt` | Kaggle val | 39.04% | 49.23% | 32.35% | none >= 95% precision |
+
+Decision: do not continue head-only combined training. It regresses both the original Kaggle validation split and the combined validation split.
+
+Updated conclusion: the Hugging Face detection data should not be mixed into YOLOX training at equal weight until its box quality and distribution are reviewed. The next YOLOX step should be data analysis and filtering, not another parameter-only run.

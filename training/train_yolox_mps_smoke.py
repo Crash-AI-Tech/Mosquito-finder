@@ -79,6 +79,11 @@ def main() -> int:
     parser.add_argument("--exp-module", default="training.yolox_kaggle_smoke")
     parser.add_argument("--resume", default=None)
     parser.add_argument(
+        "--freeze-backbone",
+        action="store_true",
+        help="Freeze YOLOX backbone/FPN and train only the detection head.",
+    )
+    parser.add_argument(
         "--resume-optimizer",
         action="store_true",
         help="Restore optimizer state from the checkpoint. By default, only model weights are restored.",
@@ -106,7 +111,15 @@ def main() -> int:
     )
     model = exp.get_model().to(device)
     model.train()
-    optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
+    if args.freeze_backbone:
+        for parameter in model.backbone.parameters():
+            parameter.requires_grad = False
+
+    trainable_parameters = [parameter for parameter in model.parameters() if parameter.requires_grad]
+    if not trainable_parameters:
+        raise RuntimeError("No trainable parameters remain after applying freeze options.")
+
+    optimizer = torch.optim.SGD(trainable_parameters, lr=args.lr, momentum=0.9)
     resumed_steps = 0
 
     if args.resume:
@@ -189,6 +202,7 @@ def main() -> int:
         "checkpoint_every": args.checkpoint_every,
         "num_workers": exp.data_num_workers,
         "cache_img": args.cache_img,
+        "freeze_backbone": args.freeze_backbone,
         "last_loss": last_loss,
         "elapsed_seconds": elapsed,
         "seconds_per_step": elapsed / args.steps,
