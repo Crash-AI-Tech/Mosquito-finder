@@ -171,6 +171,7 @@ class TargetCoordinator: ObservableObject {
         stage1Detector.detectorCandidateThreshold = settings.modelMode.isDetectorMode
             ? min(0.35, settings.stage2ConfidenceThreshold * 0.7)
             : 0.35
+        stage1Detector.detectorNmsIouThreshold = settings.detectorNmsIouThreshold
         stage1Detector.localContrastThreshold = settings.stage1LocalContrastThreshold
         stage1Detector.backgroundVarianceThreshold = settings.stage1BackgroundVarianceThreshold
         objectTracker.requiredStableFrames = settings.stableFrameCount

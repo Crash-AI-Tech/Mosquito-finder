@@ -87,6 +87,7 @@ struct RuntimeDetectionSettings {
     var maxStage1Detections: Int
     var stage1LocalContrastThreshold: Float
     var stage1BackgroundVarianceThreshold: Float
+    var detectorNmsIouThreshold: CGFloat
 
     static let strict = RuntimeDetectionSettings(
         modelMode: .coreMLStrict,
@@ -98,7 +99,8 @@ struct RuntimeDetectionSettings {
         stage2Cooldown: 0.5,
         maxStage1Detections: 5,
         stage1LocalContrastThreshold: 0.08,
-        stage1BackgroundVarianceThreshold: 0.015
+        stage1BackgroundVarianceThreshold: 0.015,
+        detectorNmsIouThreshold: 0.35
     )
 
     static let balanced = RuntimeDetectionSettings(
@@ -111,7 +113,8 @@ struct RuntimeDetectionSettings {
         stage2Cooldown: 0.5,
         maxStage1Detections: 6,
         stage1LocalContrastThreshold: 0.07,
-        stage1BackgroundVarianceThreshold: 0.018
+        stage1BackgroundVarianceThreshold: 0.018,
+        detectorNmsIouThreshold: 0.35
     )
 
     static let yoloxHighPrecision = RuntimeDetectionSettings(
@@ -124,7 +127,8 @@ struct RuntimeDetectionSettings {
         stage2Cooldown: 0.45,
         maxStage1Detections: 8,
         stage1LocalContrastThreshold: 0.06,
-        stage1BackgroundVarianceThreshold: 0.018
+        stage1BackgroundVarianceThreshold: 0.018,
+        detectorNmsIouThreshold: 0.35
     )
 
     static let dfineHighPrecision = RuntimeDetectionSettings(
@@ -137,7 +141,8 @@ struct RuntimeDetectionSettings {
         stage2Cooldown: 0.25,
         maxStage1Detections: 8,
         stage1LocalContrastThreshold: 0.06,
-        stage1BackgroundVarianceThreshold: 0.018
+        stage1BackgroundVarianceThreshold: 0.018,
+        detectorNmsIouThreshold: 0.35
     )
 
     static func preset(for mode: RuntimeModelMode) -> RuntimeDetectionSettings {
@@ -192,7 +197,8 @@ struct RuntimeDetectionSettings {
             stage2Cooldown: defaults.doubleOrDefault("stage2Cooldown", preset.stage2Cooldown),
             maxStage1Detections: max(1, defaults.integerOrDefault("maxStage1Detections", preset.maxStage1Detections)),
             stage1LocalContrastThreshold: Float(defaults.doubleOrDefault("stage1LocalContrastThreshold", Double(preset.stage1LocalContrastThreshold))),
-            stage1BackgroundVarianceThreshold: Float(defaults.doubleOrDefault("stage1BackgroundVarianceThreshold", Double(preset.stage1BackgroundVarianceThreshold)))
+            stage1BackgroundVarianceThreshold: Float(defaults.doubleOrDefault("stage1BackgroundVarianceThreshold", Double(preset.stage1BackgroundVarianceThreshold))),
+            detectorNmsIouThreshold: CGFloat(defaults.doubleOrDefault("detectorNmsIouThreshold", Double(preset.detectorNmsIouThreshold)))
         )
     }
 
@@ -209,6 +215,7 @@ struct RuntimeDetectionSettings {
         defaults.set(preset.maxStage1Detections, forKey: "maxStage1Detections")
         defaults.set(Double(preset.stage1LocalContrastThreshold), forKey: "stage1LocalContrastThreshold")
         defaults.set(Double(preset.stage1BackgroundVarianceThreshold), forKey: "stage1BackgroundVarianceThreshold")
+        defaults.set(Double(preset.detectorNmsIouThreshold), forKey: "detectorNmsIouThreshold")
         if mode == .detectorDfine {
             defaults.set(dfineFullFrameSettingsVersion, forKey: "dfineFullFrameSettingsVersion")
         }

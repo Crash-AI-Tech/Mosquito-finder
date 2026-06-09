@@ -41,6 +41,65 @@ def move_targets_to_device(targets: list[dict], device: torch.device) -> list[di
     ]
 
 
+def load_checkpoint(
+    checkpoint_path: Path,
+    model: torch.nn.Module,
+    optimizer: torch.optim.Optimizer,
+    device: torch.device,
+    resume_optimizer: bool,
+) -> dict:
+    checkpoint = torch.load(checkpoint_path, map_location="cpu")
+    if not isinstance(checkpoint, dict):
+        raise TypeError(f"Unsupported checkpoint format: {checkpoint_path}")
+
+    if "ema" in checkpoint and isinstance(checkpoint["ema"], dict) and "module" in checkpoint["ema"]:
+        state = checkpoint["ema"]["module"]
+    elif "model" in checkpoint:
+        state = checkpoint["model"]
+    else:
+        state = checkpoint
+    model.load_state_dict(state)
+
+    if resume_optimizer and "optimizer" in checkpoint:
+        optimizer.load_state_dict(checkpoint["optimizer"])
+        for state_value in optimizer.state.values():
+            for key, value in state_value.items():
+                if isinstance(value, torch.Tensor):
+                    state_value[key] = value.to(device)
+
+    return checkpoint
+
+
+def save_checkpoint(
+    output_dir: Path,
+    name: str,
+    model: torch.nn.Module,
+    optimizer: torch.optim.Optimizer,
+    args: argparse.Namespace,
+    device: torch.device,
+    resumed_steps: int,
+    completed_steps: int,
+    last_loss: float | None,
+    elapsed: float,
+) -> Path:
+    checkpoint_path = output_dir / name
+    torch.save(
+        {
+            "model": model.state_dict(),
+            "optimizer": optimizer.state_dict(),
+            "steps": completed_steps,
+            "total_steps": resumed_steps + completed_steps,
+            "device": str(device),
+            "last_loss": last_loss,
+            "elapsed_seconds": elapsed,
+            "config": args.config,
+            "resume": args.resume,
+        },
+        checkpoint_path,
+    )
+    return checkpoint_path
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Run a limited D-FINE training loop for smoke verification."
@@ -52,9 +111,13 @@ def main() -> int:
     parser.add_argument("--steps", type=int, default=3)
     parser.add_argument("--lr", type=float, default=1e-5)
     parser.add_argument("--device", choices=("cpu", "mps"), default="cpu")
+    parser.add_argument("--batch-size", type=int, default=None)
     parser.add_argument("--torch-threads", type=int, default=None)
     parser.add_argument("--num-workers", type=int, default=None)
     parser.add_argument("--mps-friendly-integral", action="store_true")
+    parser.add_argument("--resume", default=None)
+    parser.add_argument("--resume-optimizer", action="store_true")
+    parser.add_argument("--checkpoint-every", type=int, default=0)
     parser.add_argument(
         "--output-dir",
         default=str(REPO_ROOT / "artifacts" / "dfine_cpu_smoke"),
@@ -69,6 +132,8 @@ def main() -> int:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     cfg = YAMLConfig(args.config, device=str(device))
+    if args.batch_size is not None:
+        cfg.yaml_cfg["train_dataloader"]["total_batch_size"] = args.batch_size
     if args.num_workers is not None:
         cfg.yaml_cfg["train_dataloader"]["num_workers"] = args.num_workers
     if args.mps_friendly_integral:
@@ -76,6 +141,18 @@ def main() -> int:
     model = cfg.model.to(device)
     criterion = cfg.criterion.to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
+    resumed_steps = 0
+    if args.resume:
+        checkpoint = load_checkpoint(
+            Path(args.resume),
+            model,
+            optimizer,
+            device,
+            resume_optimizer=args.resume_optimizer,
+        )
+        resumed_steps = int(checkpoint.get("total_steps", checkpoint.get("steps", 0)))
+        print(f"resumed_from={args.resume}", flush=True)
+        print(f"resumed_steps={resumed_steps}", flush=True)
 
     model.train()
     criterion.train()
@@ -111,28 +188,46 @@ def main() -> int:
         last_loss = float(loss.detach().cpu())
         print(f"step={step}/{args.steps} loss={last_loss:.6f}", flush=True)
 
+        if args.checkpoint_every > 0 and step % args.checkpoint_every == 0:
+            elapsed = time.perf_counter() - started_at
+            checkpoint_path = save_checkpoint(
+                output_dir,
+                f"step_{resumed_steps + step}.pth",
+                model,
+                optimizer,
+                args,
+                device,
+                resumed_steps,
+                step,
+                last_loss,
+                elapsed,
+            )
+            print(f"checkpoint={checkpoint_path}", flush=True)
+
     elapsed = time.perf_counter() - started_at
-    checkpoint_path = output_dir / "latest.pth"
-    torch.save(
-        {
-            "model": model.state_dict(),
-            "optimizer": optimizer.state_dict(),
-            "steps": args.steps,
-            "device": str(device),
-            "last_loss": last_loss,
-            "elapsed_seconds": elapsed,
-            "config": args.config,
-        },
-        checkpoint_path,
+    checkpoint_path = save_checkpoint(
+        output_dir,
+        "latest.pth",
+        model,
+        optimizer,
+        args,
+        device,
+        resumed_steps,
+        args.steps,
+        last_loss,
+        elapsed,
     )
 
     summary = {
         "device": str(device),
+        "batch_size": args.batch_size,
         "steps": args.steps,
+        "total_steps": resumed_steps + args.steps,
         "last_loss": last_loss,
         "elapsed_seconds": elapsed,
         "seconds_per_step": elapsed / args.steps,
         "checkpoint": str(checkpoint_path),
+        "resume": args.resume,
     }
     (output_dir / "summary.json").write_text(
         json.dumps(summary, indent=2) + "\n",
@@ -141,6 +236,7 @@ def main() -> int:
 
     print(f"device={device}", flush=True)
     print(f"steps={args.steps}", flush=True)
+    print(f"total_steps={resumed_steps + args.steps}", flush=True)
     print(f"elapsed_seconds={elapsed:.3f}", flush=True)
     print(f"seconds_per_step={elapsed / args.steps:.3f}", flush=True)
     print(f"checkpoint={checkpoint_path}", flush=True)

@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import json
 from pathlib import Path
 from typing import Any
 
@@ -56,7 +57,20 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--manifest", type=Path, default=MANIFEST_PATH)
     parser.add_argument("--output", type=Path, default=OUTPUT_PATH)
+    parser.add_argument("--metrics-output", type=Path, default=None)
     parser.add_argument("--image-size", type=int, default=IMAGE_SIZE)
+    parser.add_argument(
+        "--train-splits",
+        nargs="+",
+        default=None,
+        help="Manifest split values used for fitting. Defaults to all trainable rows.",
+    )
+    parser.add_argument(
+        "--eval-splits",
+        nargs="+",
+        default=None,
+        help="Manifest split values used for held-out metrics.",
+    )
     parser.add_argument(
         "--negative-weight",
         type=float,
@@ -97,9 +111,14 @@ def train_pipeline(
     size: tuple[int, int],
     negative_weight: float,
     positive_weight: float,
+    train_splits: list[str] | None = None,
 ) -> Pipeline:
     """Fit StandardScaler + PCA + LogisticRegression on pixel features."""
-    trainable = [r for r in records if r["binary_label"] >= 0]
+    trainable = [
+        r for r in records
+        if r["binary_label"] >= 0
+        and (train_splits is None or r.get("split") in train_splits)
+    ]
 
     X = np.vstack(
         [load_pixel_features(REPO_ROOT / r["relative_path"], size) for r in trainable]
@@ -128,6 +147,69 @@ def train_pipeline(
     lr.fit(projected, y)
 
     return Pipeline([("scaler", scaler), ("pca", pca), ("lr", lr)])
+
+
+def evaluate_pipeline(
+    pipe: Pipeline,
+    records: list[dict[str, Any]],
+    size: tuple[int, int],
+    eval_splits: list[str] | None,
+    thresholds: list[float],
+) -> dict[str, Any] | None:
+    eval_records = [
+        r for r in records
+        if r["binary_label"] >= 0
+        and (eval_splits is None or r.get("split") in eval_splits)
+    ]
+    if not eval_records:
+        return None
+
+    X = np.vstack(
+        [load_pixel_features(REPO_ROOT / r["relative_path"], size) for r in eval_records]
+    ).astype(np.float32)
+    y = np.array([r["binary_label"] for r in eval_records], dtype=np.int32)
+    probabilities = pipe.predict_proba(X)[:, 1]
+
+    metrics = []
+    for threshold in thresholds:
+        predictions = probabilities >= threshold
+        tp = int(((predictions == 1) & (y == 1)).sum())
+        fp = int(((predictions == 1) & (y == 0)).sum())
+        tn = int(((predictions == 0) & (y == 0)).sum())
+        fn = int(((predictions == 0) & (y == 1)).sum())
+        precision = tp / (tp + fp) if tp + fp else 0.0
+        recall = tp / (tp + fn) if tp + fn else 0.0
+        accuracy = (tp + tn) / max(1, len(y))
+        f1 = 2 * precision * recall / max(1e-9, precision + recall)
+        metrics.append(
+            {
+                "threshold": threshold,
+                "accuracy": accuracy,
+                "precision": precision,
+                "recall": recall,
+                "f1": f1,
+                "true_positive": tp,
+                "false_positive": fp,
+                "true_negative": tn,
+                "false_negative": fn,
+            }
+        )
+
+    return {
+        "samples": len(eval_records),
+        "positives": int(y.sum()),
+        "negatives": int((y == 0).sum()),
+        "splits": eval_splits,
+        "positive_quantiles": np.quantile(
+            probabilities[y == 1],
+            [0, 0.1, 0.25, 0.5, 0.75, 0.9, 1],
+        ).round(6).tolist() if int(y.sum()) else [],
+        "negative_quantiles": np.quantile(
+            probabilities[y == 0],
+            [0, 0.5, 0.75, 0.9, 0.95, 0.99, 1],
+        ).round(6).tolist() if int((y == 0).sum()) else [],
+        "metrics": metrics,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -299,12 +381,39 @@ def main() -> None:
 
     print(f"\nTraining on {args.image_size}x{args.image_size} grayscale pixel features ...")
     print(f"  class weights: negative={args.negative_weight}, positive={args.positive_weight}")
+    if args.train_splits:
+        print(f"  train splits: {', '.join(args.train_splits)}")
     pipe = train_pipeline(
         records,
         image_size,
         negative_weight=args.negative_weight,
         positive_weight=args.positive_weight,
+        train_splits=args.train_splits,
     )
+
+    metrics = evaluate_pipeline(
+        pipe,
+        records,
+        image_size,
+        eval_splits=args.eval_splits,
+        thresholds=[0.50, 0.70, 0.80, 0.90, 0.95],
+    )
+    if metrics is not None:
+        print("\nHeld-out metrics:")
+        for metric in metrics["metrics"]:
+            print(
+                f"  threshold={metric['threshold']:.2f} "
+                f"accuracy={metric['accuracy']:.3f} "
+                f"precision={metric['precision']:.3f} "
+                f"recall={metric['recall']:.3f} "
+                f"f1={metric['f1']:.3f}"
+            )
+        if args.metrics_output:
+            args.metrics_output.parent.mkdir(parents=True, exist_ok=True)
+            args.metrics_output.write_text(
+                json.dumps(metrics, indent=2) + "\n",
+                encoding="utf-8",
+            )
 
     print("\nExporting CoreML model ...")
     export_coreml(pipe, image_size, args.output)

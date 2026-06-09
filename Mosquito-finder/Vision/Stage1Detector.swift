@@ -48,6 +48,9 @@ class Stage1Detector: ObservableObject {
 
     /// 检测模型候选阈值。Stage 1 用较低阈值提高召回，Stage 2 再做确认。
     var detectorCandidateThreshold: Float = 0.35
+
+    /// 检测器输出框的 NMS IoU 阈值。当前主要用于 YOLOX 输出去重。
+    var detectorNmsIouThreshold: CGFloat = 0.35
     
     // MARK: - Private Properties
     
@@ -341,12 +344,12 @@ class Stage1Detector: ObservableObject {
             detections.append(SuspectRegion(boundingBox: rect, confidence: confidence))
         }
 
-        return nonMaximumSuppressed(detections)
+        return nonMaximumSuppressed(detections, iouThreshold: detectorNmsIouThreshold)
             .prefix(maxDetections)
             .map { $0 }
     }
 
-    private func nonMaximumSuppressed(_ detections: [SuspectRegion], iouThreshold: CGFloat = 0.45) -> [SuspectRegion] {
+    private func nonMaximumSuppressed(_ detections: [SuspectRegion], iouThreshold: CGFloat) -> [SuspectRegion] {
         var selected: [SuspectRegion] = []
         let sortedDetections = detections.sorted { $0.confidence > $1.confidence }
 

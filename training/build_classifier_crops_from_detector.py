@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import random
 import shutil
@@ -13,9 +14,9 @@ from PIL import Image
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_DATASET_DIR = REPO_ROOT / "data" / "detector" / "generated_dfine"
-DEFAULT_OUTPUT_DIR = REPO_ROOT / "data" / "classifier" / "detector_crops"
-DEFAULT_MANIFEST_PATH = REPO_ROOT / "artifacts" / "classifier_detector_crops" / "manifest.csv"
+DEFAULT_DATASET_DIR = REPO_ROOT / "data" / "processed" / "combined_mosquito_coco_single_class"
+DEFAULT_OUTPUT_DIR = REPO_ROOT / "data" / "classifier" / "real_detector_crops"
+DEFAULT_MANIFEST_PATH = REPO_ROOT / "artifacts" / "classifier_real_detector_crops" / "manifest.csv"
 IMAGE_SIZE = 64
 MANIFEST_FIELDS = [
     "file_name",
@@ -48,6 +49,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--negative-per-image", type=int, default=3)
     parser.add_argument("--padding-ratio", type=float, default=2.2)
     parser.add_argument("--seed", type=int, default=20260531)
+    parser.add_argument(
+        "--splits",
+        nargs="+",
+        default=None,
+        help="COCO split directories to process. Defaults to every instances_*.json under annotations/.",
+    )
     parser.add_argument("--clean", action="store_true")
     return parser
 
@@ -59,6 +66,18 @@ def load_coco(dataset_dir: Path, split: str) -> tuple[list[dict[str, Any]], dict
     for annotation in payload["annotations"]:
         boxes_by_image.setdefault(int(annotation["image_id"]), []).append(annotation["bbox"])
     return payload["images"], boxes_by_image
+
+
+def discover_splits(dataset_dir: Path, requested_splits: list[str] | None) -> list[str]:
+    if requested_splits:
+        return requested_splits
+    annotation_dir = dataset_dir / "annotations"
+    splits = []
+    for annotation_path in sorted(annotation_dir.glob("instances_*.json")):
+        splits.append(annotation_path.stem.removeprefix("instances_"))
+    if not splits:
+        raise FileNotFoundError(f"No COCO annotations found under {annotation_dir}")
+    return splits
 
 
 def expanded_box(
@@ -108,7 +127,10 @@ def random_negative_box(
 
 
 def split_to_fold(split: str) -> int:
-    return {"train2017": 0, "val2017": 1, "reality2017": 2}.get(split, -1)
+    known = {"train2017": 0, "val2017": 1, "reality2017": 2}
+    if split in known:
+        return known[split]
+    return int(hashlib.sha1(split.encode("utf-8")).hexdigest()[:6], 16) % 1000 + 10
 
 
 def save_crop(
@@ -156,7 +178,11 @@ def manifest_row(
 
 def main() -> None:
     args = build_parser().parse_args()
+    args.dataset_dir = args.dataset_dir.resolve()
+    args.output_dir = args.output_dir.resolve()
+    args.manifest = args.manifest.resolve()
     rng = random.Random(args.seed)
+    splits = discover_splits(args.dataset_dir, args.splits)
 
     if args.clean and args.output_dir.exists():
         shutil.rmtree(args.output_dir)
@@ -164,7 +190,7 @@ def main() -> None:
     rows: list[dict[str, Any]] = []
     counts = {"mosquito": 0, "hardnegative": 0}
 
-    for split in ("train2017", "val2017", "reality2017"):
+    for split in splits:
         images, boxes_by_image = load_coco(args.dataset_dir, split)
         for image_info in images:
             image_id = int(image_info["id"])
@@ -226,6 +252,10 @@ def main() -> None:
     summary = {
         "manifest": args.manifest.relative_to(REPO_ROOT).as_posix(),
         "output_dir": args.output_dir.relative_to(REPO_ROOT).as_posix(),
+        "dataset_dir": args.dataset_dir.relative_to(REPO_ROOT).as_posix()
+        if args.dataset_dir.is_relative_to(REPO_ROOT)
+        else str(args.dataset_dir),
+        "splits": splits,
         "image_size": IMAGE_SIZE,
         "counts": counts,
         "total": len(rows),
