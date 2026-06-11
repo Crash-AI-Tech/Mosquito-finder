@@ -117,6 +117,7 @@ def main() -> int:
     parser.add_argument("--mps-friendly-integral", action="store_true")
     parser.add_argument("--resume", default=None)
     parser.add_argument("--resume-optimizer", action="store_true")
+    parser.add_argument("--print-every", type=int, default=1)
     parser.add_argument("--checkpoint-every", type=int, default=0)
     parser.add_argument(
         "--output-dir",
@@ -186,7 +187,8 @@ def main() -> int:
         optimizer.step()
 
         last_loss = float(loss.detach().cpu())
-        print(f"step={step}/{args.steps} loss={last_loss:.6f}", flush=True)
+        if step == 1 or step == args.steps or step % args.print_every == 0:
+            print(f"step={step}/{args.steps} loss={last_loss:.6f}", flush=True)
 
         if args.checkpoint_every > 0 and step % args.checkpoint_every == 0:
             elapsed = time.perf_counter() - started_at
@@ -224,6 +226,7 @@ def main() -> int:
         "steps": args.steps,
         "total_steps": resumed_steps + args.steps,
         "last_loss": last_loss,
+        "print_every": args.print_every,
         "elapsed_seconds": elapsed,
         "seconds_per_step": elapsed / args.steps,
         "checkpoint": str(checkpoint_path),

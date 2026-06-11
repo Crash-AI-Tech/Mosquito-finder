@@ -44,7 +44,7 @@ class Stage1Detector: ObservableObject {
     var localContrastThreshold: Float = 0.08
 
     /// 当前运行模型模式
-    var modelMode: RuntimeModelMode = .coreMLStrict
+    var modelMode: RuntimeModelMode = .classic
 
     /// 检测模型候选阈值。Stage 1 用较低阈值提高召回，Stage 2 再做确认。
     var detectorCandidateThreshold: Float = 0.35
@@ -207,7 +207,7 @@ class Stage1Detector: ObservableObject {
                     output: output.featureValue(for: "output")?.multiArrayValue,
                     imageSize: imageSize
                 )
-            case .coreMLStrict, .coreMLBalanced:
+            case .classic:
                 return nil
             }
         } catch {

@@ -966,6 +966,696 @@
       }
     },
     "×%lld": {},
+    "Background Variance": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "背景方差"
+          }
+        }
+      }
+    },
+    "Balanced": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平衡"
+          }
+        }
+      }
+    },
+    "Candidate Generation": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "候选生成"
+          }
+        }
+      }
+    },
+    "Candidate Threshold": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "候选阈值"
+          }
+        }
+      }
+    },
+    "Candidates": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "候选"
+          }
+        }
+      }
+    },
+    "Center, zoom, and target size": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中心、变焦和目标尺寸"
+          }
+        }
+      }
+    },
+    "Classic": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "经典"
+          }
+        }
+      }
+    },
+    "Classic 2-stage": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "经典两阶段"
+          }
+        }
+      }
+    },
+    "Classic Parameter Preset": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Classic 参数预设"
+          }
+        }
+      }
+    },
+    "Classic scanner with Balanced and Strict parameter presets.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "经典扫描器，支持平衡和严格两套参数预设。"
+          }
+        }
+      }
+    },
+    "CNN Mosquito Probability": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CNN 蚊子概率"
+          }
+        }
+      }
+    },
+    "Common Controls": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通用控制"
+          }
+        }
+      }
+    },
+    "Confirmation": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认"
+          }
+        }
+      }
+    },
+    "Cooldown": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冷却时间"
+          }
+        }
+      }
+    },
+    "Current Pipeline": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前 Pipeline"
+          }
+        }
+      }
+    },
+    "D-FINE": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "D-FINE"
+          }
+        }
+      }
+    },
+    "D-FINE creates candidates; confidence gate confirms them.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "D-FINE 生成候选框，再用置信度门控确认。"
+          }
+        }
+      }
+    },
+    "D-FINE detector": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "D-FINE 检测器"
+          }
+        }
+      }
+    },
+    "Dark-spot scanner": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暗点扫描器"
+          }
+        }
+      }
+    },
+    "Dark-spot scanner creates candidates; CNN confirms ROI crops.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暗点扫描器生成候选区域，CNN 确认 ROI 裁剪图。"
+          }
+        }
+      }
+    },
+    "Default": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "默认"
+          }
+        }
+      }
+    },
+    "Derived from Stage 2 confirmation threshold, capped at 0.35.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "由第二阶段确认阈值推导，最高限制为 0.35。"
+          }
+        }
+      }
+    },
+    "Detection Profile": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "识别配置"
+          }
+        }
+      }
+    },
+    "Detector 2-stage": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检测器两阶段"
+          }
+        }
+      }
+    },
+    "Detector boxes are filtered with NMS before tracking.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检测框先经过 NMS 过滤，再进入跟踪。"
+          }
+        }
+      }
+    },
+    "Detector boxes become tracked candidates.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检测框会转为可跟踪候选目标。"
+          }
+        }
+      }
+    },
+    "Detector Confirmation": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检测器确认"
+          }
+        }
+      }
+    },
+    "Detector NMS IoU": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检测器 NMS IoU"
+          }
+        }
+      }
+    },
+    "Developer Diagnostics": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开发诊断"
+          }
+        }
+      }
+    },
+    "Faster confirmation with moderate false-positive control.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认更快，同时保持适中的误报控制。"
+          }
+        }
+      }
+    },
+    "Full-frame detector profile with YOLOX NMS tuning.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全图检测器配置，包含 YOLOX NMS 调参。"
+          }
+        }
+      }
+    },
+    "Higher confirmation threshold for fewer false positives.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更高确认阈值，用于减少误报。"
+          }
+        }
+      }
+    },
+    "Local Contrast": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "局部对比度"
+          }
+        }
+      }
+    },
+    "Local contrast and smooth-background gates generate candidates.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通过局部对比度和平滑背景门控生成候选。"
+          }
+        }
+      }
+    },
+    "Lower values prefer smoother wall/background regions.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数值越低，越偏好平滑墙面或背景区域。"
+          }
+        }
+      }
+    },
+    "Max Candidates: %lld": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最大候选数：%lld"
+          }
+        }
+      }
+    },
+    "Max Stage 1 Candidates": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第一阶段最大候选数"
+          }
+        }
+      }
+    },
+    "Minimum dark-point contrast against local background.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暗点相对局部背景所需的最低对比度。"
+          }
+        }
+      }
+    },
+    "Minimum time between confirmation attempts.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "两次确认尝试之间的最短间隔。"
+          }
+        }
+      }
+    },
+    "Mode": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模式"
+          }
+        }
+      }
+    },
+    "Model Inventory": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模型清单"
+          }
+        }
+      }
+    },
+    "Needs Training": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要训练"
+          }
+        }
+      }
+    },
+    "Pipeline": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pipeline"
+          }
+        }
+      }
+    },
+    "Radius relative to the shorter frame edge.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "相对于画面短边的半径。"
+          }
+        }
+      }
+    },
+    "Recommended full-frame detector and confidence confirmation.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "推荐的全图检测器与置信度确认方案。"
+          }
+        }
+      }
+    },
+    "Required camera zoom before confirmation can fire.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "触发确认前所需的相机变焦倍数。"
+          }
+        }
+      }
+    },
+    "RGB CNN classifier": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RGB CNN 分类器"
+          }
+        }
+      }
+    },
+    "Runtime Values": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "运行时参数"
+          }
+        }
+      }
+    },
+    "Runtime values and model inventory": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "运行时参数与模型清单"
+          }
+        }
+      }
+    },
+    "Select": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择"
+          }
+        }
+      }
+    },
+    "Smallest tracked box allowed to trigger confirmation.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许触发确认的最小跟踪框尺寸。"
+          }
+        }
+      }
+    },
+    "Stable": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "稳定"
+          }
+        }
+      }
+    },
+    "Stable detector confidence gate": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "稳定检测置信度门控"
+          }
+        }
+      }
+    },
+    "Stable Frames": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "稳定帧数"
+          }
+        }
+      }
+    },
+    "Stage 1": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第一阶段"
+          }
+        }
+      }
+    },
+    "Stage 2": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第二阶段"
+          }
+        }
+      }
+    },
+    "Stage 2 Threshold": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第二阶段阈值"
+          }
+        }
+      }
+    },
+    "Stored for detector profiles.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用于检测器配置的预留参数。"
+          }
+        }
+      }
+    },
+    "Strict": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "严格"
+          }
+        }
+      }
+    },
+    "The cropped target ROI is classified by MosquitoClassifier.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "裁剪后的目标 ROI 会交给 MosquitoClassifier 分类。"
+          }
+        }
+      }
+    },
+    "Tracked detector confidence must pass the confirmation threshold.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跟踪后的检测置信度必须通过确认阈值。"
+          }
+        }
+      }
+    },
+    "Trigger Gates": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "触发门控"
+          }
+        }
+      }
+    },
+    "Tune Pipeline": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "调节 Pipeline"
+          }
+        }
+      }
+    },
+    "Used by YOLOX box suppression.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用于 YOLOX 框抑制。"
+          }
+        }
+      }
+    },
+    "Uses the MosquitoClassifier probability on the target ROI.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用 MosquitoClassifier 对目标 ROI 的概率。"
+          }
+        }
+      }
+    },
+    "Uses the tracked full-frame detector confidence.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用已跟踪的全图检测器置信度。"
+          }
+        }
+      }
+    },
+    "YOLOX": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "YOLOX"
+          }
+        }
+      }
+    },
+    "YOLOX creates candidates; NMS filters overlapping boxes.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "YOLOX 生成候选框，NMS 过滤重叠框。"
+          }
+        }
+      }
+    },
+    "YOLOX detector": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "YOLOX 检测器"
+          }
+        }
+      }
+    },
     "中": {
       "comment": "Language toggle button when English is active",
       "localizations": {

@@ -75,6 +75,11 @@ def main() -> int:
     parser.add_argument("--checkpoint-every", type=int, default=0)
     parser.add_argument("--num-workers", type=int, default=None)
     parser.add_argument("--cache-img", choices=("none", "ram", "disk"), default="none")
+    parser.add_argument(
+        "--enable-aug",
+        action="store_true",
+        help="Enable YOLOX train-time augmentations such as mosaic, HSV, and flip.",
+    )
     parser.add_argument("--lr", type=float, default=1e-5)
     parser.add_argument("--exp-module", default="training.yolox_kaggle_smoke")
     parser.add_argument("--resume", default=None)
@@ -106,7 +111,7 @@ def main() -> int:
     loader = exp.get_data_loader(
         batch_size=args.batch_size,
         is_distributed=False,
-        no_aug=True,
+        no_aug=not args.enable_aug,
         cache_img=args.cache_img if args.cache_img != "none" else None,
     )
     model = exp.get_model().to(device)
@@ -202,6 +207,7 @@ def main() -> int:
         "checkpoint_every": args.checkpoint_every,
         "num_workers": exp.data_num_workers,
         "cache_img": args.cache_img,
+        "enable_aug": args.enable_aug,
         "freeze_backbone": args.freeze_backbone,
         "last_loss": last_loss,
         "elapsed_seconds": elapsed,

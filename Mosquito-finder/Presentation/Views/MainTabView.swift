@@ -152,6 +152,7 @@ struct SettingsView: View {
     @AppStorage("autoFlashlight") private var autoFlashlight = true
     @AppStorage("appLanguage") private var appLanguage: String = ""
     @AppStorage("detectionModelMode") private var detectionModelMode = RuntimeModelMode.preferredDefault.rawValue
+    @AppStorage("classicDetectionPreset") private var classicDetectionPresetRaw = ClassicDetectionPreset.balanced.rawValue
     @AppStorage("stage2ConfidenceThreshold") private var stage2ConfidenceThreshold = Double(RuntimeDetectionSettings.current.stage2ConfidenceThreshold)
     @AppStorage("minZoomFactor") private var minZoomFactor = Double(RuntimeDetectionSettings.current.minZoomFactor)
     @AppStorage("centerRegionRatio") private var centerRegionRatio = Double(RuntimeDetectionSettings.current.centerRegionRatio)
@@ -186,11 +187,15 @@ struct SettingsView: View {
     }
 
     private var selectedModelMode: RuntimeModelMode {
-        RuntimeModelMode(rawValue: detectionModelMode) ?? .coreMLStrict
+        RuntimeModelMode.fromStoredValue(detectionModelMode)
+    }
+
+    private var selectedClassicPreset: ClassicDetectionPreset {
+        ClassicDetectionPreset.fromStoredValue(classicDetectionPresetRaw)
     }
 
     private var orderedProfiles: [RuntimeModelMode] {
-        [.detectorDfine, .detectorYolox, .coreMLBalanced, .coreMLStrict]
+        [.detectorDfine, .detectorYolox, .classic]
     }
 
     private var detectionProfileSection: some View {
@@ -199,7 +204,7 @@ struct SettingsView: View {
                 ForEach(orderedProfiles) { mode in
                     Button {
                         guard mode.isBundled && mode.isProductionReady else { return }
-                        applyPreset(mode)
+                        applyProfile(mode)
                     } label: {
                         HStack(spacing: 12) {
                             Image(systemName: profileIcon(for: mode))
@@ -234,7 +239,7 @@ struct SettingsView: View {
                                 Image(systemName: "checkmark.circle.fill")
                                     .foregroundColor(.green)
                             } else {
-                                Text(mode.isBundled ? "Select" : "Missing")
+                                Text(profileActionTitle(for: mode))
                                     .font(.caption.weight(.semibold))
                                     .foregroundColor(mode.isBundled ? .gray : .orange)
                             }
@@ -251,8 +256,42 @@ struct SettingsView: View {
                     .buttonStyle(.plain)
                     .disabled(!mode.isBundled || !mode.isProductionReady)
                 }
+
+                if selectedModelMode == .classic {
+                    classicPresetControl
+                }
             }
         }
+    }
+
+    private var classicPresetControl: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                Image(systemName: "slider.horizontal.below.rectangle")
+                    .foregroundColor(.orange)
+                Text("Classic Parameter Preset")
+                    .font(.subheadline.weight(.semibold))
+                Spacer()
+            }
+
+            Picker("Classic Parameter Preset", selection: $classicDetectionPresetRaw) {
+                ForEach(ClassicDetectionPreset.allCases) { preset in
+                    Text(preset.localizedTitleKey).tag(preset.rawValue)
+                }
+            }
+            .pickerStyle(.segmented)
+            .onChange(of: classicDetectionPresetRaw) { _, newValue in
+                applyClassicPreset(ClassicDetectionPreset.fromStoredValue(newValue))
+            }
+
+            Text(selectedClassicPreset.localizedDescriptionKey)
+                .font(.caption)
+                .foregroundColor(.gray)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(12)
+        .background(Color.white.opacity(0.055))
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 
     private var pipelineSection: some View {
@@ -393,8 +432,7 @@ struct SettingsView: View {
             VStack(spacing: 12) {
                 ModelStatusRow(mode: .detectorDfine)
                 ModelStatusRow(mode: .detectorYolox)
-                ModelStatusRow(mode: .coreMLBalanced)
-                ModelStatusRow(mode: .coreMLStrict)
+                ModelStatusRow(mode: .classic)
             }
         }
     }
@@ -411,10 +449,28 @@ struct SettingsView: View {
         }
     }
 
+    private func applyProfile(_ mode: RuntimeModelMode) {
+        if mode == .classic {
+            applyClassicPreset(selectedClassicPreset)
+        } else {
+            applyPreset(mode)
+        }
+    }
+
+    private func applyClassicPreset(_ preset: ClassicDetectionPreset) {
+        RuntimeDetectionSettings.applyClassicPreset(preset)
+        classicDetectionPresetRaw = preset.rawValue
+        syncRuntimeSettingsFromDefaults()
+    }
+
     private func applyPreset(_ mode: RuntimeModelMode) {
         RuntimeDetectionSettings.applyPreset(mode)
-        detectionModelMode = mode.rawValue
+        syncRuntimeSettingsFromDefaults()
+    }
+
+    private func syncRuntimeSettingsFromDefaults() {
         let settings = RuntimeDetectionSettings.current
+        detectionModelMode = settings.modelMode.rawValue
         stage2ConfidenceThreshold = Double(settings.stage2ConfidenceThreshold)
         minZoomFactor = Double(settings.minZoomFactor)
         centerRegionRatio = Double(settings.centerRegionRatio)
@@ -429,9 +485,9 @@ struct SettingsView: View {
 
     private func pipelineStageRow(
         number: String,
-        title: String,
-        value: String,
-        detail: String,
+        title: LocalizedStringKey,
+        value: LocalizedStringKey,
+        detail: LocalizedStringKey,
         tint: Color
     ) -> some View {
         HStack(alignment: .top, spacing: 12) {
@@ -443,9 +499,10 @@ struct SettingsView: View {
                 .clipShape(Circle())
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(title.uppercased())
+                Text(title)
                     .font(.caption2.weight(.semibold))
                     .foregroundColor(.gray)
+                    .textCase(.uppercase)
                 Text(value)
                     .font(.subheadline.weight(.semibold))
                     .foregroundColor(.primary)
@@ -459,7 +516,7 @@ struct SettingsView: View {
         }
     }
 
-    private func parameterChip(title: String, value: String, tint: Color) -> some View {
+    private func parameterChip(title: LocalizedStringKey, value: String, tint: Color) -> some View {
         VStack(spacing: 3) {
             Text(title)
                 .font(.caption2.weight(.semibold))
@@ -476,7 +533,7 @@ struct SettingsView: View {
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 
-    private func tuningRow(title: String, subtitle: String, systemImage: String, tint: Color) -> some View {
+    private func tuningRow(title: LocalizedStringKey, subtitle: LocalizedStringKey, systemImage: String, tint: Color) -> some View {
         HStack(spacing: 12) {
             Image(systemName: systemImage)
                 .font(.system(size: 17, weight: .semibold))
@@ -503,7 +560,7 @@ struct SettingsView: View {
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 
-    private func settingsValueRow(title: String, value: String, systemImage: String) -> some View {
+    private func settingsValueRow(title: LocalizedStringKey, value: String, systemImage: String) -> some View {
         HStack(spacing: 12) {
             Image(systemName: systemImage)
                 .foregroundColor(.gray)
@@ -516,25 +573,22 @@ struct SettingsView: View {
         }
     }
 
-    private func profileTitle(for mode: RuntimeModelMode) -> String {
+    private func profileTitle(for mode: RuntimeModelMode) -> LocalizedStringKey {
         switch mode {
-        case .detectorDfine: return "D-FINE Two-Stage"
-        case .detectorYolox: return "YOLOX High Precision"
-        case .coreMLBalanced: return "Classic Balanced"
-        case .coreMLStrict: return "Classic Strict"
+        case .detectorDfine: return "D-FINE"
+        case .detectorYolox: return "YOLOX"
+        case .classic: return "Classic"
         }
     }
 
-    private func profileSubtitle(for mode: RuntimeModelMode) -> String {
+    private func profileSubtitle(for mode: RuntimeModelMode) -> LocalizedStringKey {
         switch mode {
         case .detectorDfine:
-            return "Full-frame detector, stable confidence confirmation."
+            return "D-FINE creates candidates; confidence gate confirms them."
         case .detectorYolox:
-            return "Full-frame detector with tighter box suppression."
-        case .coreMLBalanced:
-            return "Dark-spot candidates, RGB CNN confirmation."
-        case .coreMLStrict:
-            return "Classic two-stage chain with fewer false positives."
+            return "YOLOX creates candidates; NMS filters overlapping boxes."
+        case .classic:
+            return "Dark-spot scanner creates candidates; CNN confirms ROI crops."
         }
     }
 
@@ -542,8 +596,7 @@ struct SettingsView: View {
         switch mode {
         case .detectorDfine: return "scope"
         case .detectorYolox: return "smallcircle.filled.circle"
-        case .coreMLBalanced: return "circle.grid.cross"
-        case .coreMLStrict: return "lock.shield"
+        case .classic: return "circle.grid.cross"
         }
     }
 
@@ -551,8 +604,7 @@ struct SettingsView: View {
         switch mode {
         case .detectorDfine: return .green
         case .detectorYolox: return .cyan
-        case .coreMLBalanced: return .orange
-        case .coreMLStrict: return .red
+        case .classic: return .orange
         }
     }
 
@@ -560,30 +612,34 @@ struct SettingsView: View {
         selectedModelMode == mode ? profileColor(for: mode).opacity(0.15) : Color.white.opacity(0.055)
     }
 
-    private func stage1PipelineName(for mode: RuntimeModelMode) -> String {
+    private func profileActionTitle(for mode: RuntimeModelMode) -> LocalizedStringKey {
+        mode.isBundled ? "Select" : "Missing"
+    }
+
+    private func stage1PipelineName(for mode: RuntimeModelMode) -> LocalizedStringKey {
         switch mode {
-        case .detectorDfine: return "Full-frame D-FINE detector"
-        case .detectorYolox: return "Full-frame YOLOX detector"
-        case .coreMLBalanced, .coreMLStrict: return "Dark-spot candidate scanner"
+        case .detectorDfine: return "D-FINE detector"
+        case .detectorYolox: return "YOLOX detector"
+        case .classic: return "Dark-spot scanner"
         }
     }
 
-    private func stage1PipelineDetail(for mode: RuntimeModelMode) -> String {
+    private func stage1PipelineDetail(for mode: RuntimeModelMode) -> LocalizedStringKey {
         switch mode {
         case .detectorDfine:
             return "Detector boxes become tracked candidates."
         case .detectorYolox:
             return "Detector boxes are filtered with NMS before tracking."
-        case .coreMLBalanced, .coreMLStrict:
+        case .classic:
             return "Local contrast and smooth-background gates generate candidates."
         }
     }
 
-    private func stage2PipelineName(for mode: RuntimeModelMode) -> String {
+    private func stage2PipelineName(for mode: RuntimeModelMode) -> LocalizedStringKey {
         mode.isDetectorMode ? "Stable detector confidence gate" : "RGB CNN classifier"
     }
 
-    private func stage2PipelineDetail(for mode: RuntimeModelMode) -> String {
+    private func stage2PipelineDetail(for mode: RuntimeModelMode) -> LocalizedStringKey {
         mode.isDetectorMode
             ? "Tracked detector confidence must pass the confirmation threshold."
             : "The cropped target ROI is classified by MosquitoClassifier."
@@ -595,11 +651,11 @@ struct SettingsView: View {
 }
 
 private struct SettingsPanel<Content: View>: View {
-    let title: String
+    let title: LocalizedStringKey
     let systemImage: String
     let content: Content
 
-    init(title: String, systemImage: String, @ViewBuilder content: () -> Content) {
+    init(title: LocalizedStringKey, systemImage: String, @ViewBuilder content: () -> Content) {
         self.title = title
         self.systemImage = systemImage
         self.content = content()
@@ -624,11 +680,11 @@ private struct SettingsPanel<Content: View>: View {
 }
 
 private struct SettingSlider: View {
-    let title: String
+    let title: LocalizedStringKey
     @Binding var value: Double
     let range: ClosedRange<Double>
     let format: String
-    var detail: String?
+    var detail: LocalizedStringKey?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
@@ -765,7 +821,7 @@ private struct Stage2TuningView: View {
         .navigationTitle("Stage 2")
     }
 
-    private var confidenceDetail: String {
+    private var confidenceDetail: LocalizedStringKey {
         mode.isDetectorMode
             ? "Uses the tracked full-frame detector confidence."
             : "Uses the MosquitoClassifier probability on the target ROI."
@@ -834,7 +890,7 @@ private struct PipelineDiagnosticsView: View {
                 SettingsPanel(title: "Runtime Values", systemImage: "terminal") {
                     VStack(spacing: 10) {
                         diagnosticRow("Mode", mode.displayName)
-                        diagnosticRow("Pipeline", mode.isDetectorMode ? "Full-frame detector" : "Classic 2-stage")
+                        diagnosticRow("Pipeline", mode.isDetectorMode ? "Detector 2-stage" : "Classic 2-stage")
                         diagnosticRow("Stage 2 Threshold", String(format: "%.2f", stage2ConfidenceThreshold))
                         diagnosticRow("Stable Frames", "\(stableFrameCount)")
                         diagnosticRow("Cooldown", String(format: "%.2fs", stage2Cooldown))
@@ -852,8 +908,7 @@ private struct PipelineDiagnosticsView: View {
                     VStack(spacing: 12) {
                         ModelStatusRow(mode: .detectorDfine)
                         ModelStatusRow(mode: .detectorYolox)
-                        ModelStatusRow(mode: .coreMLBalanced)
-                        ModelStatusRow(mode: .coreMLStrict)
+                        ModelStatusRow(mode: .classic)
                     }
                 }
             }
@@ -863,7 +918,7 @@ private struct PipelineDiagnosticsView: View {
         .navigationTitle("Diagnostics")
     }
 
-    private func diagnosticRow(_ title: String, _ value: String) -> some View {
+    private func diagnosticRow(_ title: LocalizedStringKey, _ value: String) -> some View {
         HStack {
             Text(title)
                 .foregroundColor(.gray)
@@ -916,19 +971,17 @@ private struct ModelStatusRow: View {
         mode.isBundled && mode.isProductionReady ? .green : .orange
     }
 
-    private var badge: String {
+    private var badge: LocalizedStringKey {
         if !mode.isBundled { return "Missing" }
         if mode == .detectorDfine { return "Default" }
         if mode.isProductionReady { return "Installed" }
         return "Needs Training"
     }
 
-    private var description: String {
+    private var description: LocalizedStringKey {
         switch mode {
-        case .coreMLStrict:
-            return "Classic scanner with a strict CNN confirmation threshold."
-        case .coreMLBalanced:
-            return "Classic scanner with faster CNN confirmation."
+        case .classic:
+            return "Classic scanner with Balanced and Strict parameter presets."
         case .detectorYolox:
             return "Full-frame detector profile with YOLOX NMS tuning."
         case .detectorDfine:

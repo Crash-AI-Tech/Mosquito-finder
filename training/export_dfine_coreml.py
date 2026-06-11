@@ -11,7 +11,10 @@ import torch.nn as nn
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-DFINE_ROOT = REPO_ROOT / "external" / "D-FINE"
+CODE_PROJECT_ROOT = REPO_ROOT.parents[1]
+LOCAL_DFINE_ROOT = REPO_ROOT / "external" / "D-FINE"
+SHARED_DFINE_ROOT = CODE_PROJECT_ROOT / "ml-frameworks" / "D-FINE"
+DFINE_ROOT = LOCAL_DFINE_ROOT if LOCAL_DFINE_ROOT.exists() else SHARED_DFINE_ROOT
 DEFAULT_CONFIG = REPO_ROOT / "training" / "dfine_mosquito_n_long.yml"
 DEFAULT_CHECKPOINT = REPO_ROOT / "artifacts" / "dfine_mosquito_n_long" / "best_stg2.pth"
 DEFAULT_ONNX = REPO_ROOT / "artifacts" / "dfine_mosquito_n_long" / "DfineMosquitoDetectorScores.onnx"
@@ -42,6 +45,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--onnx-output", type=Path, default=DEFAULT_ONNX)
     parser.add_argument("--mlmodel-output", type=Path, default=DEFAULT_MLMODEL)
     parser.add_argument("--image-size", type=int, default=416)
+    parser.add_argument("--skip-onnx", action="store_true")
     parser.add_argument("--skip-coreml", action="store_true")
     parser.add_argument(
         "--raw-outputs",
@@ -142,7 +146,8 @@ def main() -> None:
     args.mlmodel_output = args.mlmodel_output.resolve()
     os.chdir(DFINE_ROOT)
     model = load_dfine_model(args.config, args.checkpoint, args.raw_outputs)
-    export_onnx(model, args.onnx_output, args.image_size)
+    if not args.skip_onnx:
+        export_onnx(model, args.onnx_output, args.image_size)
     if not args.skip_coreml:
         export_coreml(model, args.mlmodel_output, args.image_size)
 

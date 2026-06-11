@@ -12,8 +12,7 @@ import CoreGraphics
 // MARK: - Runtime Detection Configuration
 
 enum RuntimeModelMode: String, CaseIterable, Identifiable {
-    case coreMLStrict = "coreml_strict"
-    case coreMLBalanced = "coreml_balanced"
+    case classic = "classic"
     case detectorDfine = "detector_dfine"
     case detectorYolox = "detector_yolox"
 
@@ -21,19 +20,17 @@ enum RuntimeModelMode: String, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .coreMLStrict: return "CoreML Strict"
-        case .coreMLBalanced: return "CoreML Balanced"
-        case .detectorDfine: return "D-FINE Detector"
-        case .detectorYolox: return "YOLOX Detector"
+        case .classic: return "Classic"
+        case .detectorDfine: return "D-FINE"
+        case .detectorYolox: return "YOLOX"
         }
     }
 
     var localizedDisplayNameKey: LocalizedStringKey {
         switch self {
-        case .coreMLStrict: return "CoreML Strict"
-        case .coreMLBalanced: return "CoreML Balanced"
-        case .detectorDfine: return "D-FINE Detector"
-        case .detectorYolox: return "YOLOX Detector"
+        case .classic: return "Classic"
+        case .detectorDfine: return "D-FINE"
+        case .detectorYolox: return "YOLOX"
         }
     }
 
@@ -57,7 +54,7 @@ enum RuntimeModelMode: String, CaseIterable, Identifiable {
 
     var isProductionReady: Bool {
         switch self {
-        case .coreMLStrict, .coreMLBalanced, .detectorDfine, .detectorYolox:
+        case .classic, .detectorDfine, .detectorYolox:
             return true
         }
     }
@@ -70,7 +67,52 @@ enum RuntimeModelMode: String, CaseIterable, Identifiable {
         if RuntimeModelMode.detectorDfine.isBundled {
             return .detectorDfine
         }
-        return RuntimeModelMode.detectorYolox.isBundled ? .detectorYolox : .coreMLStrict
+        return RuntimeModelMode.detectorYolox.isBundled ? .detectorYolox : .classic
+    }
+
+    static func fromStoredValue(_ value: String?) -> RuntimeModelMode {
+        switch value {
+        case RuntimeModelMode.detectorDfine.rawValue:
+            return .detectorDfine
+        case RuntimeModelMode.detectorYolox.rawValue:
+            return .detectorYolox
+        case RuntimeModelMode.classic.rawValue, "coreml_strict", "coreml_balanced":
+            return .classic
+        default:
+            return .preferredDefault
+        }
+    }
+}
+
+enum ClassicDetectionPreset: String, CaseIterable, Identifiable {
+    case balanced
+    case strict
+
+    var id: String { rawValue }
+
+    var localizedTitleKey: LocalizedStringKey {
+        switch self {
+        case .balanced: return "Balanced"
+        case .strict: return "Strict"
+        }
+    }
+
+    var localizedDescriptionKey: LocalizedStringKey {
+        switch self {
+        case .balanced:
+            return "Faster confirmation with moderate false-positive control."
+        case .strict:
+            return "Higher confirmation threshold for fewer false positives."
+        }
+    }
+
+    static func fromStoredValue(_ value: String?) -> ClassicDetectionPreset {
+        switch value {
+        case ClassicDetectionPreset.strict.rawValue, "coreml_strict":
+            return .strict
+        default:
+            return .balanced
+        }
     }
 }
 
@@ -89,8 +131,8 @@ struct RuntimeDetectionSettings {
     var stage1BackgroundVarianceThreshold: Float
     var detectorNmsIouThreshold: CGFloat
 
-    static let strict = RuntimeDetectionSettings(
-        modelMode: .coreMLStrict,
+    static let classicStrict = RuntimeDetectionSettings(
+        modelMode: .classic,
         stage2ConfidenceThreshold: 0.90,
         minZoomFactor: 2.0,
         centerRegionRatio: 0.25,
@@ -103,8 +145,8 @@ struct RuntimeDetectionSettings {
         detectorNmsIouThreshold: 0.35
     )
 
-    static let balanced = RuntimeDetectionSettings(
-        modelMode: .coreMLBalanced,
+    static let classicBalanced = RuntimeDetectionSettings(
+        modelMode: .classic,
         stage2ConfidenceThreshold: 0.82,
         minZoomFactor: 1.5,
         centerRegionRatio: 0.30,
@@ -116,6 +158,9 @@ struct RuntimeDetectionSettings {
         stage1BackgroundVarianceThreshold: 0.018,
         detectorNmsIouThreshold: 0.35
     )
+
+    static let strict = classicStrict
+    static let balanced = classicBalanced
 
     static let yoloxHighPrecision = RuntimeDetectionSettings(
         modelMode: .detectorYolox,
@@ -147,21 +192,36 @@ struct RuntimeDetectionSettings {
 
     static func preset(for mode: RuntimeModelMode) -> RuntimeDetectionSettings {
         switch mode {
-        case .coreMLBalanced:
-            return balanced
+        case .classic:
+            return classicBalanced
         case .detectorYolox:
             return yoloxHighPrecision
         case .detectorDfine:
             return dfineHighPrecision
-        case .coreMLStrict:
-            return strict
+        }
+    }
+
+    static func preset(forClassicPreset preset: ClassicDetectionPreset) -> RuntimeDetectionSettings {
+        switch preset {
+        case .balanced:
+            return classicBalanced
+        case .strict:
+            return classicStrict
         }
     }
 
     static var current: RuntimeDetectionSettings {
         let defaults = UserDefaults.standard
         let storedMode = defaults.string(forKey: "detectionModelMode") ?? RuntimeModelMode.preferredDefault.rawValue
-        var requestedMode = RuntimeModelMode(rawValue: storedMode) ?? RuntimeModelMode.preferredDefault
+        var requestedMode = RuntimeModelMode.fromStoredValue(storedMode)
+
+        if defaults.object(forKey: "classicDetectionPreset") == nil {
+            if storedMode == "coreml_strict" {
+                defaults.set(ClassicDetectionPreset.strict.rawValue, forKey: "classicDetectionPreset")
+            } else if storedMode == "coreml_balanced" {
+                defaults.set(ClassicDetectionPreset.balanced.rawValue, forKey: "classicDetectionPreset")
+            }
+        }
 
         if requestedMode == .detectorYolox,
            RuntimeModelMode.detectorDfine.isBundled,
@@ -178,7 +238,15 @@ struct RuntimeDetectionSettings {
         }
 
         let mode = requestedMode.isBundled && requestedMode.isProductionReady ? requestedMode : RuntimeModelMode.preferredDefault
-        let preset = RuntimeDetectionSettings.preset(for: mode)
+        let preset = mode == .classic
+            ? RuntimeDetectionSettings.preset(
+                forClassicPreset: ClassicDetectionPreset.fromStoredValue(defaults.string(forKey: "classicDetectionPreset"))
+            )
+            : RuntimeDetectionSettings.preset(for: mode)
+
+        if storedMode != mode.rawValue {
+            defaults.set(mode.rawValue, forKey: "detectionModelMode")
+        }
 
         if mode == .detectorDfine,
            defaults.integer(forKey: "dfineFullFrameSettingsVersion") < dfineFullFrameSettingsVersion {
@@ -204,8 +272,20 @@ struct RuntimeDetectionSettings {
 
     static func applyPreset(_ mode: RuntimeModelMode) {
         let preset = RuntimeDetectionSettings.preset(for: mode)
+        if mode == .classic {
+            UserDefaults.standard.set(ClassicDetectionPreset.balanced.rawValue, forKey: "classicDetectionPreset")
+        }
+        apply(preset)
+    }
+
+    static func applyClassicPreset(_ preset: ClassicDetectionPreset) {
+        UserDefaults.standard.set(preset.rawValue, forKey: "classicDetectionPreset")
+        apply(RuntimeDetectionSettings.preset(forClassicPreset: preset))
+    }
+
+    private static func apply(_ preset: RuntimeDetectionSettings) {
         let defaults = UserDefaults.standard
-        defaults.set(mode.rawValue, forKey: "detectionModelMode")
+        defaults.set(preset.modelMode.rawValue, forKey: "detectionModelMode")
         defaults.set(Double(preset.stage2ConfidenceThreshold), forKey: "stage2ConfidenceThreshold")
         defaults.set(Double(preset.minZoomFactor), forKey: "minZoomFactor")
         defaults.set(Double(preset.centerRegionRatio), forKey: "centerRegionRatio")
@@ -216,7 +296,7 @@ struct RuntimeDetectionSettings {
         defaults.set(Double(preset.stage1LocalContrastThreshold), forKey: "stage1LocalContrastThreshold")
         defaults.set(Double(preset.stage1BackgroundVarianceThreshold), forKey: "stage1BackgroundVarianceThreshold")
         defaults.set(Double(preset.detectorNmsIouThreshold), forKey: "detectorNmsIouThreshold")
-        if mode == .detectorDfine {
+        if preset.modelMode == .detectorDfine {
             defaults.set(dfineFullFrameSettingsVersion, forKey: "dfineFullFrameSettingsVersion")
         }
     }

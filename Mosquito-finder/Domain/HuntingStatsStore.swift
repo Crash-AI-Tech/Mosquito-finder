@@ -19,7 +19,7 @@ struct HuntSessionRecord: Identifiable, Codable {
     let modelModeRawValue: String
 
     var modelMode: RuntimeModelMode {
-        RuntimeModelMode(rawValue: modelModeRawValue) ?? .coreMLStrict
+        RuntimeModelMode.fromStoredValue(modelModeRawValue)
     }
 }
 
@@ -30,7 +30,7 @@ struct MosquitoHitRecord: Identifiable, Codable {
     let modelModeRawValue: String
 
     var modelMode: RuntimeModelMode {
-        RuntimeModelMode(rawValue: modelModeRawValue) ?? .coreMLStrict
+        RuntimeModelMode.fromStoredValue(modelModeRawValue)
     }
 }
 

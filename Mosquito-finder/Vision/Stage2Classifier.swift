@@ -28,7 +28,7 @@ class Stage2Classifier: ObservableObject {
     var confidenceThreshold: Float = 0.90
 
     /// 当前运行模型模式
-    var modelMode: RuntimeModelMode = .coreMLStrict
+    var modelMode: RuntimeModelMode = .classic
     
     /// ROI 区域大小（相对于屏幕中心）
     var roiSize: CGSize = CGSize(width: 224, height: 224)
@@ -269,7 +269,7 @@ class Stage2Classifier: ObservableObject {
             return Bundle.main.url(forResource: "DfineMosquitoDetector", withExtension: "mlmodelc")
         case .detectorYolox:
             return Bundle.main.url(forResource: "YoloxMosquitoDetector", withExtension: "mlmodelc")
-        case .coreMLStrict, .coreMLBalanced:
+        case .classic:
             return nil
         }
     }
