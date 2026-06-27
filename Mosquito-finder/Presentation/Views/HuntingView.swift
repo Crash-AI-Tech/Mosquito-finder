@@ -90,6 +90,17 @@ struct HuntingView: View {
                     )
                 }
 
+                if viewModel.isSessionActive && viewModel.currentPhase != .killing,
+                   let guidanceTarget = viewModel.guidanceTarget {
+                    GuidanceDirectionOverlay(
+                        target: guidanceTarget,
+                        imageSize: viewModel.nativeImageSize,
+                        tint: viewModel.guidanceState.tint
+                    )
+                    .ignoresSafeArea()
+                    .allowsHitTesting(false)
+                }
+
                 // 主 HUD
                 if viewModel.isSessionActive {
                     VStack(spacing: 0) {
@@ -246,28 +257,86 @@ struct HuntingView: View {
     }
 
     private var missionPromptPanel: some View {
-        HStack(spacing: 10) {
-            Image(systemName: missionPromptIcon)
-                .foregroundColor(phaseColor)
-            Text(missionPromptText)
-                .font(.system(size: 12, weight: .semibold, design: .monospaced))
-                .foregroundColor(.white.opacity(0.88))
-                .lineLimit(2)
-            Spacer()
-            if viewModel.currentPhase == .engaging {
-                ProgressView()
-                    .tint(.orange)
-                    .scaleEffect(0.8)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .top, spacing: 11) {
+                ZStack {
+                    Circle()
+                        .fill(viewModel.guidanceState.tint.opacity(0.16))
+                    Image(systemName: missionPromptIcon)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(viewModel.guidanceState.tint)
+                }
+                .frame(width: 34, height: 34)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(missionPromptText)
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundColor(.white)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.82)
+                    Text(viewModel.guidanceState.localizedDetailKey)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.white.opacity(0.66))
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer(minLength: 6)
+
+                if viewModel.guidanceState == .confirming || viewModel.currentPhase == .engaging {
+                    ProgressView()
+                        .tint(viewModel.guidanceState.tint)
+                        .scaleEffect(0.85)
+                }
+            }
+
+            HStack(spacing: 8) {
+                guidanceChip(
+                    icon: "scope",
+                    title: "Targets",
+                    value: "\(viewModel.trackedTargets.count)",
+                    tint: viewModel.trackedTargets.isEmpty ? .gray : .yellow
+                )
+                guidanceChip(
+                    icon: "checkmark.seal",
+                    title: "Stable",
+                    value: "\(viewModel.diagnostics.stableTargetCount)",
+                    tint: viewModel.diagnostics.stableTargetCount > 0 ? .green : .gray
+                )
+                guidanceChip(
+                    icon: "plus.magnifyingglass",
+                    title: "Zoom",
+                    value: String(format: "%.1fx", viewModel.currentZoomFactor),
+                    tint: viewModel.currentZoomFactor >= RuntimeDetectionSettings.current.minZoomFactor ? .green : .orange
+                )
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 9)
-        .background(Color.black.opacity(0.58))
+        .padding(12)
+        .background(.ultraThinMaterial)
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .stroke(phaseColor.opacity(0.35), lineWidth: 1)
+                .stroke(viewModel.guidanceState.tint.opacity(0.32), lineWidth: 1)
         )
         .cornerRadius(8)
+    }
+
+    private func guidanceChip(icon: String, title: LocalizedStringKey, value: String, tint: Color) -> some View {
+        HStack(spacing: 5) {
+            Image(systemName: icon)
+                .font(.system(size: 10, weight: .semibold))
+            Text(title)
+                .font(.system(size: 9, weight: .medium))
+                .lineLimit(1)
+            Text(value)
+                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+        }
+        .foregroundColor(tint)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 6)
+        .background(Color.black.opacity(0.32))
+        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
     }
 
     private func dMetric(_ title: String, _ value: String) -> some View {
@@ -382,8 +451,8 @@ struct HuntingView: View {
             Color.black.ignoresSafeArea()
 
             RadarPulseView()
-                .frame(width: 320, height: 320)
-                .opacity(0.4)
+                .frame(width: 300, height: 300)
+                .opacity(0.32)
 
             VStack(spacing: 0) {
                 // 顶部语言切换按钮
@@ -406,29 +475,26 @@ struct HuntingView: View {
 
                 Spacer()
 
-                // App 名
-                VStack(spacing: 8) {
+                VStack(spacing: 9) {
                     Text("Mosquito Finder")
-                        .font(.system(size: 38, weight: .bold, design: .default))
+                        .font(.system(size: 36, weight: .bold, design: .default))
                         .foregroundColor(.white)
-                        .tracking(1)
-                    Text("THREAT DETECTION SYSTEM")
-                        .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                        .foregroundColor(.green.opacity(0.7))
-                        .tracking(3)
+                    Text("Guided two-stage mosquito search")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.white.opacity(0.68))
+                        .multilineTextAlignment(.center)
                 }
 
-                Spacer().frame(height: 48)
+                Spacer().frame(height: 38)
 
-                // 功能说明三行
-                VStack(spacing: 14) {
-                    featureRow(icon: "flashlight.on.fill",  color: .yellow, text: "🔦 Flashlight, focus lock & zoom")
-                    featureRow(icon: "viewfinder",           color: .green,  text: "📍 Scan walls for suspicious targets")
-                    featureRow(icon: "scope",               color: .orange, text: "🎯 Zoom in to confirm mosquito")
+                VStack(spacing: 10) {
+                    featureRow(icon: "viewfinder", color: .green, text: "Scan wide areas slowly")
+                    featureRow(icon: "arrow.up.left.and.arrow.down.right", color: .orange, text: "Follow guidance to move closer")
+                    featureRow(icon: "checkmark.seal.fill", color: .cyan, text: "Confirm with a close-up crop")
                 }
                 .padding(.horizontal, 36)
 
-                Spacer().frame(height: 52)
+                Spacer().frame(height: 46)
 
                 // 开始按钮
                 Button(action: {
@@ -461,7 +527,7 @@ struct HuntingView: View {
 
                 Spacer().frame(height: 56)
 
-                Text("v1.0  ·  AI POWERED")
+                Text("v2.0  ·  TWO-STAGE VISION")
                     .font(.system(size: 10, design: .monospaced))
                     .foregroundColor(Color(white: 0.3))
                     .padding(.bottom, 20)
@@ -645,25 +711,11 @@ struct HuntingView: View {
     }
 
     private var missionPromptIcon: String {
-        switch viewModel.currentPhase {
-        case .idle: return "scope"
-        case .scanning: return "radar"
-        case .engaging: return "dot.scope"
-        case .killing: return "bolt.fill"
-        }
+        viewModel.guidanceState.systemImage
     }
 
     private var missionPromptText: LocalizedStringKey {
-        switch viewModel.currentPhase {
-        case .idle:
-            return "Mission system ready."
-        case .scanning:
-            return "Sweep walls and corners slowly."
-        case .engaging:
-            return "Center the halo and hold steady."
-        case .killing:
-            return "Target confirmed. Finish it."
-        }
+        viewModel.guidanceState.localizedTitleKey
     }
 
     private var phaseEffectsOverlay: some View {
@@ -766,6 +818,74 @@ private struct MissionGuideOverlay: View {
         .padding(12)
         .background(Color.white.opacity(0.07))
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+}
+
+private struct GuidanceDirectionOverlay: View {
+    let target: TrackedTarget
+    let imageSize: CGSize
+    let tint: Color
+
+    var body: some View {
+        GeometryReader { geometry in
+            let screenSize = geometry.size
+            let targetPoint = projectedTargetCenter(in: screenSize)
+            let center = CGPoint(x: screenSize.width / 2, y: screenSize.height / 2)
+            let dx = targetPoint.x - center.x
+            let dy = targetPoint.y - center.y
+            let distance = max(1, hypot(dx, dy))
+            let unitX = dx / distance
+            let unitY = dy / distance
+            let cueRadius = min(screenSize.width, screenSize.height) * 0.30
+            let cuePoint = CGPoint(
+                x: center.x + unitX * cueRadius,
+                y: center.y + unitY * cueRadius
+            )
+            let angle = Angle(radians: atan2(Double(dy), Double(dx)) + .pi / 2)
+
+            if distance > 58 {
+                VStack(spacing: 5) {
+                    Image(systemName: "arrow.up")
+                        .font(.system(size: 22, weight: .bold))
+                        .rotationEffect(angle)
+                    Text("Move")
+                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                }
+                .foregroundColor(tint)
+                .padding(9)
+                .background(Color.black.opacity(0.54))
+                .clipShape(Capsule())
+                .overlay(Capsule().stroke(tint.opacity(0.45), lineWidth: 1))
+                .position(cuePoint)
+                .shadow(color: tint.opacity(0.3), radius: 10)
+                .transition(.opacity)
+            }
+        }
+    }
+
+    private func projectedTargetCenter(in screenSize: CGSize) -> CGPoint {
+        let isLandscape = imageSize.width > imageSize.height
+        let displaySize = isLandscape
+            ? CGSize(width: imageSize.height, height: imageSize.width)
+            : imageSize
+        let pixelBox = target.boundingBox
+        let displayBox: CGRect = isLandscape
+            ? CGRect(
+                x: pixelBox.origin.y,
+                y: imageSize.width - pixelBox.origin.x - pixelBox.width,
+                width: pixelBox.height,
+                height: pixelBox.width
+            )
+            : pixelBox
+        let scaleW = screenSize.width / displaySize.width
+        let scaleH = screenSize.height / displaySize.height
+        let scale = max(scaleW, scaleH)
+        let offsetX = (displaySize.width * scale - screenSize.width) / 2
+        let offsetY = (displaySize.height * scale - screenSize.height) / 2
+        return CGPoint(
+            x: displayBox.midX * scale - offsetX,
+            y: displayBox.midY * scale - offsetY
+        )
     }
 }
 

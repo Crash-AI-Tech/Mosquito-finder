@@ -22,6 +22,8 @@ class HuntingViewModel: ObservableObject {
     @Published var trackedTargets: [TrackedTarget] = []
     @Published var activeTarget: TrackedTarget?
     @Published var classificationResult: ClassificationResult?
+    @Published var guidanceState: GuidanceState = .scanning
+    @Published var guidanceTarget: TrackedTarget?
     @Published var diagnostics = VisionDiagnostics()
 
     /// 发现蚊子时的冻结帧
@@ -266,9 +268,17 @@ class HuntingViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-            targetCoordinator.$diagnostics
-                .receive(on: DispatchQueue.main)
-                .assign(to: &$diagnostics)
+        targetCoordinator.$guidanceState
+            .receive(on: DispatchQueue.main)
+            .assign(to: &$guidanceState)
+
+        targetCoordinator.$guidanceTarget
+            .receive(on: DispatchQueue.main)
+            .assign(to: &$guidanceTarget)
+
+        targetCoordinator.$diagnostics
+            .receive(on: DispatchQueue.main)
+            .assign(to: &$diagnostics)
     }
     
     private func setupCameraFrameHandler() {
@@ -288,8 +298,11 @@ class HuntingViewModel: ObservableObject {
                 }
             }
             
-            // 手机抖动时跳过分析（减少误报，节省电量）
-            if self.motionDetector.isShaking { return }
+            // 手机抖动时跳过分析（减少误报，节省电量），同时给用户明确的纠偏提示。
+            if self.motionDetector.isShaking {
+                self.targetCoordinator.setTransientGuidance(.holdStill)
+                return
+            }
             
             // 直接在相机串行回调队列处理，避免并发帧导致的追踪与状态错乱
             self.targetCoordinator.processFrame(

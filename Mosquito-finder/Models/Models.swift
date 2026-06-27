@@ -164,13 +164,13 @@ struct RuntimeDetectionSettings {
 
     static let yoloxHighPrecision = RuntimeDetectionSettings(
         modelMode: .detectorYolox,
-        stage2ConfidenceThreshold: 0.70,
-        minZoomFactor: 1.4,
-        centerRegionRatio: 0.32,
-        minTargetSize: 16,
+        stage2ConfidenceThreshold: 0.72,
+        minZoomFactor: 1.6,
+        centerRegionRatio: 0.34,
+        minTargetSize: 12,
         stableFrameCount: 4,
-        stage2Cooldown: 0.45,
-        maxStage1Detections: 8,
+        stage2Cooldown: 0.35,
+        maxStage1Detections: 10,
         stage1LocalContrastThreshold: 0.06,
         stage1BackgroundVarianceThreshold: 0.018,
         detectorNmsIouThreshold: 0.35
@@ -178,13 +178,13 @@ struct RuntimeDetectionSettings {
 
     static let dfineHighPrecision = RuntimeDetectionSettings(
         modelMode: .detectorDfine,
-        stage2ConfidenceThreshold: 0.50,
-        minZoomFactor: 1.0,
-        centerRegionRatio: 0.50,
-        minTargetSize: 8,
-        stableFrameCount: 2,
-        stage2Cooldown: 0.25,
-        maxStage1Detections: 8,
+        stage2ConfidenceThreshold: 0.56,
+        minZoomFactor: 1.5,
+        centerRegionRatio: 0.38,
+        minTargetSize: 10,
+        stableFrameCount: 3,
+        stage2Cooldown: 0.35,
+        maxStage1Detections: 10,
         stage1LocalContrastThreshold: 0.06,
         stage1BackgroundVarianceThreshold: 0.018,
         detectorNmsIouThreshold: 0.35
@@ -468,6 +468,105 @@ enum HuntingPhase: String, CaseIterable {
         case .scanning: return "Scanning"
         case .engaging: return "Targeting"
         case .killing:  return "Found!"
+        }
+    }
+}
+
+// MARK: - Guidance State
+
+/// User-facing guidance derived from the vision pipeline.
+/// It keeps the camera experience task-oriented instead of exposing raw model states.
+enum GuidanceState: Equatable {
+    case scanning
+    case holdStill
+    case candidateFound
+    case centerCandidate
+    case zoomIn
+    case confirming
+    case confirmed
+    case noSignal
+
+    var localizedTitleKey: LocalizedStringKey {
+        switch self {
+        case .scanning:
+            return "Slowly scan bright walls"
+        case .holdStill:
+            return "Hold the phone steady"
+        case .candidateFound:
+            return "Possible mosquito found"
+        case .centerCandidate:
+            return "Move the target to center"
+        case .zoomIn:
+            return "Zoom in and move closer"
+        case .confirming:
+            return "Confirming the close-up"
+        case .confirmed:
+            return "Mosquito confirmed"
+        case .noSignal:
+            return "No useful signal yet"
+        }
+    }
+
+    var localizedDetailKey: LocalizedStringKey {
+        switch self {
+        case .scanning:
+            return "Pan slowly. The app is searching for tiny dark shapes."
+        case .holdStill:
+            return "Motion blur lowers accuracy. Pause for a moment."
+        case .candidateFound:
+            return "Keep this area in view while the app checks stability."
+        case .centerCandidate:
+            return "Follow the arrow and place the candidate inside the ring."
+        case .zoomIn:
+            return "Use 2x or move closer before final recognition."
+        case .confirming:
+            return "The app is rechecking a high-resolution crop."
+        case .confirmed:
+            return "The target has passed two-stage recognition."
+        case .noSignal:
+            return "Try a lighter, smoother background or turn on the flashlight."
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .scanning:
+            return "viewfinder"
+        case .holdStill:
+            return "hand.raised.fill"
+        case .candidateFound:
+            return "scope"
+        case .centerCandidate:
+            return "dot.scope"
+        case .zoomIn:
+            return "plus.magnifyingglass"
+        case .confirming:
+            return "checkmark.seal"
+        case .confirmed:
+            return "checkmark.seal.fill"
+        case .noSignal:
+            return "flashlight.on.fill"
+        }
+    }
+
+    var tint: Color {
+        switch self {
+        case .scanning:
+            return .green
+        case .holdStill:
+            return .cyan
+        case .candidateFound:
+            return .yellow
+        case .centerCandidate:
+            return .orange
+        case .zoomIn:
+            return .orange
+        case .confirming:
+            return .cyan
+        case .confirmed:
+            return .red
+        case .noSignal:
+            return .gray
         }
     }
 }

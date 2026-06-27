@@ -22,6 +22,8 @@ class TargetCoordinator: ObservableObject {
     @Published var currentClassification: ClassificationResult?
     @Published var isStage2Active = false
     @Published var activeStage2Target: TrackedTarget?
+    @Published var guidanceState: GuidanceState = .scanning
+    @Published var guidanceTarget: TrackedTarget?
     @Published var diagnostics = VisionDiagnostics()
     
     // MARK: - Dependencies
@@ -114,9 +116,22 @@ class TargetCoordinator: ObservableObject {
                 lastUpdated: Date()
             )
         }
+
+        updateGuidanceState(
+            detections: detections,
+            frameSize: frameSize,
+            zoomFactor: zoomFactor,
+            isApproaching: isApproaching
+        )
         
         // 检查是否需要触发 Stage 2
         checkStage2Trigger(pixelBuffer: pixelBuffer, frameSize: frameSize, zoomFactor: zoomFactor, isApproaching: isApproaching)
+    }
+
+    func setTransientGuidance(_ state: GuidanceState) {
+        DispatchQueue.main.async {
+            self.guidanceState = state
+        }
     }
     
     /// 手动触发 Stage 2 分类
@@ -159,6 +174,8 @@ class TargetCoordinator: ObservableObject {
             self.currentClassification = nil
             self.isStage2Active = false
             self.activeStage2Target = nil
+            self.guidanceState = .scanning
+            self.guidanceTarget = nil
         }
     }
     
@@ -168,8 +185,10 @@ class TargetCoordinator: ObservableObject {
         let settings = RuntimeDetectionSettings.current
         stage1Detector.modelMode = settings.modelMode
         stage1Detector.maxDetections = settings.maxStage1Detections
+        // Stage 1 is intentionally high-recall. Detector modes are confirmed by a
+        // separate high-resolution ROI pass, so low-score boxes are kept for guidance.
         stage1Detector.detectorCandidateThreshold = settings.modelMode.isDetectorMode
-            ? min(0.35, settings.stage2ConfidenceThreshold * 0.7)
+            ? min(0.24, max(0.08, settings.stage2ConfidenceThreshold * 0.42))
             : 0.35
         stage1Detector.detectorNmsIouThreshold = settings.detectorNmsIouThreshold
         stage1Detector.localContrastThreshold = settings.stage1LocalContrastThreshold
@@ -207,16 +226,6 @@ class TargetCoordinator: ObservableObject {
             return
         }
 
-        let settings = RuntimeDetectionSettings.current
-
-        if settings.modelMode.isDetectorMode {
-            guard let target = bestStableDetectorTarget(minConfidence: settings.stage2ConfidenceThreshold) else {
-                return
-            }
-            performStage2Classification(target: target, in: pixelBuffer)
-            return
-        }
-        
         // 获取缓冲区中心附近的稳定目标
         // centerRadius 与 TriggerEvaluator.centerRegionRatio 保持一致，避免漏选
         let centerRadius = min(frameSize.width, frameSize.height) * CGFloat(triggerEvaluator.centerRegionRatio)
@@ -238,13 +247,6 @@ class TargetCoordinator: ObservableObject {
         }
     }
 
-    private func bestStableDetectorTarget(minConfidence: Float) -> TrackedTarget? {
-        objectTracker.trackedTargets
-            .filter { $0.isStable && $0.trackingConfidence >= minConfidence }
-            .sorted { $0.trackingConfidence > $1.trackingConfidence }
-            .first
-    }
-    
     private func performStage2Classification(target: TrackedTarget, in pixelBuffer: CVPixelBuffer) {
         lastStage2Time = Date()
         
@@ -255,20 +257,21 @@ class TargetCoordinator: ObservableObject {
         }
         
         let settings = RuntimeDetectionSettings.current
-
-        // 检测模型已经在 Stage 1 对全帧输出了真实候选框和置信度。
-        // Stage 2 在这里做同一条模型链路的高阈值确认，避免再次裁剪 ROI 导致框/分数错位。
-        let result = settings.modelMode.isDetectorMode
-            ? ClassificationResult(
-                isMosquito: target.trackingConfidence >= settings.stage2ConfidenceThreshold,
-                confidence: target.trackingConfidence,
-                processingTime: 0
-            )
-            : stage2Classifier.classify(region: target.boundingBox, in: pixelBuffer)
+        let frameSize = CGSize(
+            width: CVPixelBufferGetWidth(pixelBuffer),
+            height: CVPixelBufferGetHeight(pixelBuffer)
+        )
+        let confirmationRegion = expandedConfirmationRegion(
+            around: target.boundingBox,
+            in: frameSize,
+            mode: settings.modelMode
+        )
+        let result = stage2Classifier.classify(region: confirmationRegion, in: pixelBuffer)
         
         DispatchQueue.main.async {
             self.currentClassification = result
             self.activeStage2Target = self.objectTracker.trackedTargets.first(where: { $0.id == target.id }) ?? self.activeStage2Target
+            self.guidanceState = result.isMosquito ? .confirmed : .scanning
 
             var updatedDiagnostics = self.diagnostics
             updatedDiagnostics.stage2ProcessingTime = result.processingTime
@@ -290,5 +293,79 @@ class TargetCoordinator: ObservableObject {
             
             self.isStage2Active = false
         }
+    }
+
+    private func updateGuidanceState(
+        detections: [SuspectRegion],
+        frameSize: CGSize,
+        zoomFactor: CGFloat,
+        isApproaching: Bool
+    ) {
+        let candidate = bestGuidanceTarget()
+        let nextState: GuidanceState
+
+        if isStage2Active {
+            nextState = .confirming
+        } else if let candidate {
+            let triggers = triggerEvaluator.getActiveTriggers(
+                target: candidate,
+                zoomFactor: zoomFactor,
+                isApproaching: isApproaching,
+                screenSize: frameSize
+            )
+
+            if !candidate.isStable {
+                nextState = .candidateFound
+            } else if !triggers.contains("center") {
+                nextState = .centerCandidate
+            } else if !triggers.contains("zoom") || !triggers.contains("size") {
+                nextState = .zoomIn
+            } else {
+                nextState = .confirming
+            }
+        } else {
+            nextState = detections.isEmpty ? .noSignal : .scanning
+        }
+
+        DispatchQueue.main.async {
+            self.guidanceState = nextState
+            self.guidanceTarget = candidate
+        }
+    }
+
+    private func bestGuidanceTarget() -> TrackedTarget? {
+        objectTracker.trackedTargets
+            .sorted {
+                if $0.isStable != $1.isStable {
+                    return $0.isStable && !$1.isStable
+                }
+                return $0.trackingConfidence > $1.trackingConfidence
+            }
+            .first
+    }
+
+    private func expandedConfirmationRegion(
+        around box: CGRect,
+        in frameSize: CGSize,
+        mode: RuntimeModelMode
+    ) -> CGRect {
+        let multiplier: CGFloat = mode.isDetectorMode ? 3.2 : 2.2
+        let minSide: CGFloat = mode.isDetectorMode ? 192 : 128
+        let side = max(max(box.width, box.height) * multiplier, minSide)
+        let centered = CGRect(
+            x: box.midX - side / 2,
+            y: box.midY - side / 2,
+            width: side,
+            height: side
+        )
+        return clamp(centered, to: frameSize)
+    }
+
+    private func clamp(_ rect: CGRect, to size: CGSize) -> CGRect {
+        let width = min(rect.width, size.width)
+        let height = min(rect.height, size.height)
+        let x = min(max(rect.origin.x, 0), max(0, size.width - width))
+        let y = min(max(rect.origin.y, 0), max(0, size.height - height))
+        return CGRect(x: x, y: y, width: width, height: height)
     }
 }

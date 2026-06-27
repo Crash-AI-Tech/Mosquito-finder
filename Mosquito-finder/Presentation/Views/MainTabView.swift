@@ -151,6 +151,7 @@ struct SettingsView: View {
     @AppStorage("enableHaptics") private var enableHaptics = true
     @AppStorage("autoFlashlight") private var autoFlashlight = true
     @AppStorage("appLanguage") private var appLanguage: String = ""
+    @AppStorage("hasSeenHuntingGuide") private var hasSeenHuntingGuide = false
     @AppStorage("detectionModelMode") private var detectionModelMode = RuntimeModelMode.preferredDefault.rawValue
     @AppStorage("classicDetectionPreset") private var classicDetectionPresetRaw = ClassicDetectionPreset.balanced.rawValue
     @AppStorage("stage2ConfidenceThreshold") private var stage2ConfidenceThreshold = Double(RuntimeDetectionSettings.current.stage2ConfidenceThreshold)
@@ -163,16 +164,17 @@ struct SettingsView: View {
     @AppStorage("stage1LocalContrastThreshold") private var stage1LocalContrastThreshold = Double(RuntimeDetectionSettings.current.stage1LocalContrastThreshold)
     @AppStorage("stage1BackgroundVarianceThreshold") private var stage1BackgroundVarianceThreshold = Double(RuntimeDetectionSettings.current.stage1BackgroundVarianceThreshold)
     @AppStorage("detectorNmsIouThreshold") private var detectorNmsIouThreshold = Double(RuntimeDetectionSettings.current.detectorNmsIouThreshold)
+    @State private var showDeveloperLab = false
 
     var body: some View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 14) {
                     detectionProfileSection
+                    huntingExperienceSection
                     pipelineSection
                     commonSection
-                    tuningSection
-                    modelInventorySection
+                    developerLabSection
                     appSection
                 }
                 .padding(.horizontal, 16)
@@ -182,6 +184,49 @@ struct SettingsView: View {
             .navigationTitle("Settings")
             .onAppear {
                 validateSelectedModel()
+            }
+        }
+    }
+
+    private var huntingExperienceSection: some View {
+        SettingsPanel(title: "Hunting Experience", systemImage: "sparkles") {
+            VStack(spacing: 12) {
+                HStack(alignment: .top, spacing: 12) {
+                    Image(systemName: "figure.walk.motion")
+                        .foregroundColor(.green)
+                        .frame(width: 26)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Guided Search")
+                            .font(.subheadline.weight(.semibold))
+                        Text("The camera now coaches scanning, centering, zooming, and close-up confirmation.")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer()
+                }
+                .padding(12)
+                .background(Color.white.opacity(0.055))
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+                Button {
+                    hasSeenHuntingGuide = false
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "book.closed")
+                            .foregroundColor(.cyan)
+                            .frame(width: 26)
+                        Text("Show guide on next hunt")
+                            .font(.subheadline.weight(.semibold))
+                        Spacer()
+                        Image(systemName: hasSeenHuntingGuide ? "arrow.counterclockwise" : "checkmark.circle.fill")
+                            .foregroundColor(hasSeenHuntingGuide ? .cyan : .green)
+                    }
+                    .padding(12)
+                    .background(Color.white.opacity(0.055))
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                }
+                .buttonStyle(.plain)
             }
         }
     }
@@ -349,91 +394,100 @@ struct SettingsView: View {
         }
     }
 
-    private var tuningSection: some View {
-        SettingsPanel(title: "Tune Pipeline", systemImage: "wrench.adjustable") {
-            VStack(spacing: 10) {
-                NavigationLink {
-                    Stage1TuningView(
-                        mode: selectedModelMode,
-                        maxStage1Detections: $maxStage1Detections,
-                        stage1LocalContrastThreshold: $stage1LocalContrastThreshold,
-                        stage1BackgroundVarianceThreshold: $stage1BackgroundVarianceThreshold,
-                        detectorNmsIouThreshold: $detectorNmsIouThreshold
-                    )
-                } label: {
-                    tuningRow(
-                        title: "Stage 1",
-                        subtitle: stage1PipelineName(for: selectedModelMode),
-                        systemImage: "viewfinder",
-                        tint: .orange
-                    )
-                }
+    private var developerLabSection: some View {
+        SettingsPanel(title: "Developer Lab", systemImage: "terminal") {
+            DisclosureGroup(isExpanded: $showDeveloperLab) {
+                VStack(spacing: 10) {
+                    NavigationLink {
+                        Stage1TuningView(
+                            mode: selectedModelMode,
+                            maxStage1Detections: $maxStage1Detections,
+                            stage1LocalContrastThreshold: $stage1LocalContrastThreshold,
+                            stage1BackgroundVarianceThreshold: $stage1BackgroundVarianceThreshold,
+                            detectorNmsIouThreshold: $detectorNmsIouThreshold
+                        )
+                    } label: {
+                        tuningRow(
+                            title: "Stage 1 Search",
+                            subtitle: stage1PipelineName(for: selectedModelMode),
+                            systemImage: "viewfinder",
+                            tint: .orange
+                        )
+                    }
 
-                NavigationLink {
-                    Stage2TuningView(
-                        mode: selectedModelMode,
-                        stage2ConfidenceThreshold: $stage2ConfidenceThreshold,
-                        stableFrameCount: $stableFrameCount,
-                        stage2Cooldown: $stage2Cooldown
-                    )
-                } label: {
-                    tuningRow(
-                        title: "Stage 2",
-                        subtitle: stage2PipelineName(for: selectedModelMode),
-                        systemImage: "checkmark.seal",
-                        tint: .green
-                    )
-                }
+                    NavigationLink {
+                        Stage2TuningView(
+                            mode: selectedModelMode,
+                            stage2ConfidenceThreshold: $stage2ConfidenceThreshold,
+                            stableFrameCount: $stableFrameCount,
+                            stage2Cooldown: $stage2Cooldown
+                        )
+                    } label: {
+                        tuningRow(
+                            title: "Stage 2 Confirmation",
+                            subtitle: stage2PipelineName(for: selectedModelMode),
+                            systemImage: "checkmark.seal",
+                            tint: .green
+                        )
+                    }
 
-                NavigationLink {
-                    TriggerTuningView(
-                        minZoomFactor: $minZoomFactor,
-                        centerRegionRatio: $centerRegionRatio,
-                        minTargetSize: $minTargetSize
-                    )
-                } label: {
-                    tuningRow(
-                        title: "Trigger Gates",
-                        subtitle: "Center, zoom, and target size",
-                        systemImage: "dot.scope",
-                        tint: .cyan
-                    )
-                }
+                    NavigationLink {
+                        TriggerTuningView(
+                            minZoomFactor: $minZoomFactor,
+                            centerRegionRatio: $centerRegionRatio,
+                            minTargetSize: $minTargetSize
+                        )
+                    } label: {
+                        tuningRow(
+                            title: "Guidance Gates",
+                            subtitle: "Center, zoom, and target size",
+                            systemImage: "dot.scope",
+                            tint: .cyan
+                        )
+                    }
 
-                NavigationLink {
-                    PipelineDiagnosticsView(
-                        mode: selectedModelMode,
-                        stage2ConfidenceThreshold: stage2ConfidenceThreshold,
-                        minZoomFactor: minZoomFactor,
-                        centerRegionRatio: centerRegionRatio,
-                        minTargetSize: minTargetSize,
-                        stableFrameCount: stableFrameCount,
-                        stage2Cooldown: stage2Cooldown,
-                        maxStage1Detections: maxStage1Detections,
-                        stage1LocalContrastThreshold: stage1LocalContrastThreshold,
-                        stage1BackgroundVarianceThreshold: stage1BackgroundVarianceThreshold,
-                        detectorNmsIouThreshold: detectorNmsIouThreshold
-                    )
-                } label: {
-                    tuningRow(
-                        title: "Developer Diagnostics",
-                        subtitle: "Runtime values and model inventory",
-                        systemImage: "terminal",
-                        tint: .purple
-                    )
+                    NavigationLink {
+                        PipelineDiagnosticsView(
+                            mode: selectedModelMode,
+                            stage2ConfidenceThreshold: stage2ConfidenceThreshold,
+                            minZoomFactor: minZoomFactor,
+                            centerRegionRatio: centerRegionRatio,
+                            minTargetSize: minTargetSize,
+                            stableFrameCount: stableFrameCount,
+                            stage2Cooldown: stage2Cooldown,
+                            maxStage1Detections: maxStage1Detections,
+                            stage1LocalContrastThreshold: stage1LocalContrastThreshold,
+                            stage1BackgroundVarianceThreshold: stage1BackgroundVarianceThreshold,
+                            detectorNmsIouThreshold: detectorNmsIouThreshold
+                        )
+                    } label: {
+                        tuningRow(
+                            title: "Diagnostics",
+                            subtitle: "Runtime values and model inventory",
+                            systemImage: "waveform.path.ecg",
+                            tint: .purple
+                        )
+                    }
+
+                    VStack(spacing: 8) {
+                        ModelStatusRow(mode: .detectorDfine)
+                        ModelStatusRow(mode: .detectorYolox)
+                        ModelStatusRow(mode: .classic)
+                    }
+                    .padding(.top, 2)
+                }
+                .padding(.top, 10)
+                .buttonStyle(.plain)
+            } label: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Advanced model and threshold tools")
+                        .font(.subheadline.weight(.semibold))
+                    Text("Use this only when testing model behavior or collecting diagnostics.")
+                        .font(.caption)
+                        .foregroundColor(.gray)
                 }
             }
-            .buttonStyle(.plain)
-        }
-    }
-
-    private var modelInventorySection: some View {
-        SettingsPanel(title: "Model Inventory", systemImage: "shippingbox") {
-            VStack(spacing: 12) {
-                ModelStatusRow(mode: .detectorDfine)
-                ModelStatusRow(mode: .detectorYolox)
-                ModelStatusRow(mode: .classic)
-            }
+            .tint(.green)
         }
     }
 
@@ -584,9 +638,9 @@ struct SettingsView: View {
     private func profileSubtitle(for mode: RuntimeModelMode) -> LocalizedStringKey {
         switch mode {
         case .detectorDfine:
-            return "D-FINE creates candidates; confidence gate confirms them."
+            return "D-FINE searches widely; ROI recheck confirms close-up crops."
         case .detectorYolox:
-            return "YOLOX creates candidates; NMS filters overlapping boxes."
+            return "YOLOX searches widely; NMS and ROI recheck reduce false alarms."
         case .classic:
             return "Dark-spot scanner creates candidates; CNN confirms ROI crops."
         }
@@ -636,12 +690,12 @@ struct SettingsView: View {
     }
 
     private func stage2PipelineName(for mode: RuntimeModelMode) -> LocalizedStringKey {
-        mode.isDetectorMode ? "Stable detector confidence gate" : "RGB CNN classifier"
+        mode.isDetectorMode ? "High-resolution ROI recheck" : "RGB CNN classifier"
     }
 
     private func stage2PipelineDetail(for mode: RuntimeModelMode) -> LocalizedStringKey {
         mode.isDetectorMode
-            ? "Tracked detector confidence must pass the confirmation threshold."
+            ? "The tracked candidate is enlarged, cropped, and passed through the detector again."
             : "The cropped target ROI is classified by MosquitoClassifier."
     }
 
