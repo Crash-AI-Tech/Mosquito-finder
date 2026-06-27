@@ -1,0 +1,1652 @@
+{
+  "version": "2.13",
+  "children": [
+    {
+      "type": "frame",
+      "id": "ImeLK",
+      "x": 0,
+      "y": 0,
+      "name": "Scheme C Cinematic Macro Lab Concept",
+      "clip": true,
+      "width": 1440,
+      "height": 1024,
+      "fill": "#070604",
+      "layout": "none",
+      "children": [
+        {
+          "type": "rectangle",
+          "id": "s5Qms",
+          "x": 0,
+          "y": 0,
+          "name": "Board Warm Vignette",
+          "fill": {
+            "type": "gradient",
+            "gradientType": "radial",
+            "enabled": true,
+            "rotation": 0,
+            "size": {
+              "width": 1.2,
+              "height": 1
+            },
+            "colors": [
+              {
+                "color": "#2B1B0A",
+                "position": 0
+              },
+              {
+                "color": "#070604",
+                "position": 0.72
+              },
+              {
+                "color": "#030201",
+                "position": 1
+              }
+            ],
+            "center": {
+              "x": 0.42,
+              "y": 0.35
+            }
+          },
+          "width": 1440,
+          "height": 1024
+        },
+        {
+          "type": "text",
+          "id": "VPqv7",
+          "x": 72,
+          "y": 54,
+          "name": "Board Eyebrow",
+          "fill": "$candidate",
+          "content": "MOSQUITO FINDER 2.0 · SCHEME C",
+          "fontFamily": "$font-body",
+          "fontSize": 13,
+          "fontWeight": "600",
+          "letterSpacing": 1.8
+        },
+        {
+          "type": "text",
+          "id": "hZcKi",
+          "x": 72,
+          "y": 82,
+          "name": "Board Title",
+          "fill": "$text-primary",
+          "textGrowth": "fixed-width",
+          "width": 470,
+          "content": "Cinematic Macro Lab",
+          "lineHeight": 1.08,
+          "fontFamily": "$font-heading",
+          "fontSize": 34,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "Xnr8e",
+          "x": 72,
+          "y": 130,
+          "name": "Board Subtitle",
+          "fill": "$text-secondary",
+          "textGrowth": "fixed-width",
+          "width": 520,
+          "content": "把检测流程包装成微距取景体验：靠近、对准、变焦、高清 ROI 确认，适合作为 2.0 宣传截图和高记忆点方案。",
+          "lineHeight": 1.45,
+          "fontFamily": "$font-body",
+          "fontSize": 16,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "A4rux",
+          "x": 72,
+          "y": 204,
+          "name": "Scheme Selector",
+          "width": 520,
+          "height": 52,
+          "fill": "#17130ECC",
+          "cornerRadius": 26,
+          "stroke": "#4E3C25",
+          "strokeWidth": 1,
+          "gap": 8,
+          "padding": 6,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "BJ7K8",
+              "name": "Scheme A Chip",
+              "width": "fill_container",
+              "height": 40,
+              "fill": "#0F0D0ACC",
+              "cornerRadius": 20,
+              "stroke": "#30271A",
+              "strokeWidth": 1,
+              "gap": 6,
+              "padding": [
+                0,
+                10
+              ],
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "KV4F1",
+                  "name": "Scheme A Label",
+                  "fill": "#8B8377",
+                  "content": "A 玻璃精密",
+                  "fontFamily": "$font-body",
+                  "fontSize": 13,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "l253xy",
+              "name": "Scheme B Chip",
+              "width": "fill_container",
+              "height": 40,
+              "fill": "#0F0D0ACC",
+              "cornerRadius": 20,
+              "stroke": "#30271A",
+              "strokeWidth": 1,
+              "gap": 6,
+              "padding": [
+                0,
+                10
+              ],
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "ITmAp",
+                  "name": "Scheme B Label",
+                  "fill": "#8B8377",
+                  "content": "B 表现力伙伴",
+                  "fontFamily": "$font-body",
+                  "fontSize": 13,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "MalGA",
+              "name": "Scheme C Chip",
+              "width": "fill_container",
+              "height": 40,
+              "fill": "#4A2C0B",
+              "cornerRadius": 20,
+              "stroke": "#F7D08A",
+              "strokeWidth": 1.2,
+              "gap": 6,
+              "padding": [
+                0,
+                10
+              ],
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "FQPTH",
+                  "name": "Scheme C Label",
+                  "fill": "#F7D08A",
+                  "content": "C 电影微距",
+                  "fontFamily": "$font-body",
+                  "fontSize": 13,
+                  "fontWeight": "700"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "rectangle",
+          "cornerRadius": 56,
+          "id": "lgq9p",
+          "x": 650,
+          "y": 69,
+          "name": "Phone Floating Shadow",
+          "opacity": 0.42,
+          "fill": "#000000",
+          "width": 430,
+          "height": 906,
+          "effect": {
+            "type": "shadow",
+            "shadowType": "outer",
+            "color": "#000000CC",
+            "offset": {
+              "x": 0,
+              "y": 30
+            },
+            "blur": 56,
+            "spread": 8
+          }
+        },
+        {
+          "type": "frame",
+          "id": "J9U3Jv",
+          "x": 626,
+          "y": 42,
+          "name": "iPhone Camera Detection UI",
+          "clip": true,
+          "width": 430,
+          "height": 932,
+          "fill": "#050402",
+          "cornerRadius": 56,
+          "stroke": "#2A241B",
+          "strokeWidth": 2,
+          "layout": "none",
+          "children": [
+            {
+              "type": "rectangle",
+              "cornerRadius": 48,
+              "id": "n3IJzM",
+              "x": 8,
+              "y": 8,
+              "name": "Phone Bezel Inner Glow",
+              "fill": "#0A0704",
+              "width": 414,
+              "height": 916,
+              "stroke": "#5C4930",
+              "strokeWidth": 1
+            },
+            {
+              "type": "frame",
+              "id": "QsQ7d",
+              "x": 20,
+              "y": 20,
+              "name": "Live Camera Screen",
+              "clip": true,
+              "width": 390,
+              "height": 892,
+              "fill": "#070604",
+              "cornerRadius": 40,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "cornerRadius": 40,
+                  "id": "O7IYna",
+                  "x": 0,
+                  "y": 0,
+                  "name": "Dim Macro Wall Camera Feed",
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "./images/generated-1782555294718.png",
+                    "mode": "fill"
+                  },
+                  "width": 390,
+                  "height": 892
+                },
+                {
+                  "type": "rectangle",
+                  "id": "wkPGi",
+                  "x": 0,
+                  "y": 0,
+                  "name": "Preview Top Fade",
+                  "fill": {
+                    "type": "gradient",
+                    "gradientType": "linear",
+                    "enabled": true,
+                    "rotation": 180,
+                    "size": {
+                      "height": 1
+                    },
+                    "colors": [
+                      {
+                        "color": "#070604DD",
+                        "position": 0
+                      },
+                      {
+                        "color": "#07060400",
+                        "position": 1
+                      }
+                    ]
+                  },
+                  "width": 390,
+                  "height": 250
+                },
+                {
+                  "type": "rectangle",
+                  "id": "uw40P",
+                  "x": 0,
+                  "y": 620,
+                  "name": "Preview Bottom Fade",
+                  "fill": {
+                    "type": "gradient",
+                    "gradientType": "linear",
+                    "enabled": true,
+                    "rotation": 0,
+                    "size": {
+                      "height": 1
+                    },
+                    "colors": [
+                      {
+                        "color": "#070604EE",
+                        "position": 0
+                      },
+                      {
+                        "color": "#07060400",
+                        "position": 1
+                      }
+                    ]
+                  },
+                  "width": 390,
+                  "height": 272
+                },
+                {
+                  "type": "frame",
+                  "id": "f5IB4",
+                  "x": 0,
+                  "y": 0,
+                  "name": "iOS Status Bar",
+                  "width": 390,
+                  "height": 62,
+                  "padding": [
+                    16,
+                    24
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "wQIoU",
+                      "name": "Status Time",
+                      "fill": "$text-primary",
+                      "content": "9:41",
+                      "fontFamily": "$font-body",
+                      "fontSize": 15,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "j5vDjK",
+                      "name": "Status Indicators",
+                      "gap": 7,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "eNrQe",
+                          "name": "Status Signal Icon",
+                          "width": 17,
+                          "height": 17,
+                          "icon": "signal",
+                          "library": "lucide",
+                          "fill": "$text-primary"
+                        },
+                        {
+                          "type": "icon",
+                          "id": "DheqU",
+                          "name": "Status Wifi Icon",
+                          "width": 16,
+                          "height": 16,
+                          "icon": "wifi",
+                          "library": "lucide",
+                          "fill": "$text-primary"
+                        },
+                        {
+                          "type": "icon",
+                          "id": "vFuMs",
+                          "name": "Status Battery Icon",
+                          "width": 21,
+                          "height": 21,
+                          "icon": "battery",
+                          "library": "lucide",
+                          "fill": "$text-primary"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "g2EdDA",
+                  "x": 18,
+                  "y": 72,
+                  "name": "Guidance Mission Capsule",
+                  "width": 354,
+                  "height": 72,
+                  "fill": "#17130EDD",
+                  "cornerRadius": 28,
+                  "stroke": "#5B452A",
+                  "strokeWidth": 1,
+                  "effect": {
+                    "type": "shadow",
+                    "shadowType": "outer",
+                    "color": "#00000080",
+                    "offset": {
+                      "x": 0,
+                      "y": 10
+                    },
+                    "blur": 22
+                  },
+                  "gap": 12,
+                  "padding": [
+                    10,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "cZOX8",
+                      "name": "Stage Two Orb",
+                      "width": 52,
+                      "height": 52,
+                      "fill": "#2C1D0C",
+                      "cornerRadius": 26,
+                      "stroke": "$warm-light",
+                      "strokeWidth": 1,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "ellipse",
+                          "id": "tsnOK",
+                          "x": 8,
+                          "y": 8,
+                          "name": "Orb Confirm Ring",
+                          "innerRadius": 0.72,
+                          "fill": "$candidate",
+                          "width": 36,
+                          "height": 36
+                        },
+                        {
+                          "type": "ellipse",
+                          "id": "cAvM1",
+                          "x": 19,
+                          "y": 19,
+                          "name": "Orb Green Core",
+                          "fill": "$macro-green",
+                          "width": 14,
+                          "height": 14
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "X1f6a",
+                      "name": "Guidance Copy Stack",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 3,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "YzNrA",
+                          "name": "Guidance Label",
+                          "fill": "$candidate",
+                          "content": "STAGE 2 READY",
+                          "fontFamily": "$font-body",
+                          "fontSize": 12,
+                          "fontWeight": "700",
+                          "letterSpacing": 1.2
+                        },
+                        {
+                          "type": "text",
+                          "id": "V4YDu5",
+                          "name": "Guidance Instruction",
+                          "fill": "$text-primary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "保持中心 · 放大到 2x",
+                          "lineHeight": 1.18,
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 16,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "icon",
+                      "id": "l795Tk",
+                      "name": "Guidance Chevron Icon",
+                      "width": 22,
+                      "height": 22,
+                      "icon": "chevron-right",
+                      "library": "lucide",
+                      "fill": "$warm-light"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "nqjrZ",
+                  "x": 34,
+                  "y": 158,
+                  "name": "Macro Quality Rail",
+                  "width": 322,
+                  "height": 36,
+                  "gap": 8,
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "J27SH",
+                      "name": "Light Quality Item",
+                      "height": 36,
+                      "fill": "#0D0A07AA",
+                      "cornerRadius": 18,
+                      "stroke": "#3B3024",
+                      "strokeWidth": 1,
+                      "gap": 6,
+                      "padding": [
+                        0,
+                        10
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "ekVs5",
+                          "name": "Light Quality Icon",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "sun",
+                          "library": "lucide",
+                          "fill": "$macro-green"
+                        },
+                        {
+                          "type": "text",
+                          "id": "nzvDe",
+                          "name": "Light Quality Text",
+                          "fill": "$steel",
+                          "content": "Light OK",
+                          "fontFamily": "$font-body",
+                          "fontSize": 11,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "tBUs8",
+                      "name": "Stable Quality Item",
+                      "height": 36,
+                      "fill": "#0D0A07AA",
+                      "cornerRadius": 18,
+                      "stroke": "#3B3024",
+                      "strokeWidth": 1,
+                      "gap": 6,
+                      "padding": [
+                        0,
+                        10
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "LaC3Q",
+                          "name": "Stable Quality Icon",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "activity",
+                          "library": "lucide",
+                          "fill": "$macro-green"
+                        },
+                        {
+                          "type": "text",
+                          "id": "UQ0dB",
+                          "name": "Stable Quality Text",
+                          "fill": "$steel",
+                          "content": "Stable 92%",
+                          "fontFamily": "$font-body",
+                          "fontSize": 11,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "IkuyW",
+                      "name": "ROI Quality Item",
+                      "height": 36,
+                      "fill": "#0D0A07AA",
+                      "cornerRadius": 18,
+                      "stroke": "#3B3024",
+                      "strokeWidth": 1,
+                      "gap": 6,
+                      "padding": [
+                        0,
+                        10
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "PNKO0",
+                          "name": "ROI Quality Icon",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "scan-search",
+                          "library": "lucide",
+                          "fill": "$macro-green"
+                        },
+                        {
+                          "type": "text",
+                          "id": "W3n58",
+                          "name": "ROI Quality Text",
+                          "fill": "$steel",
+                          "content": "ROI 高清",
+                          "fontFamily": "$font-body",
+                          "fontSize": 11,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "ellipse",
+                  "id": "cTAaK",
+                  "x": 44,
+                  "y": 259,
+                  "name": "Outer Rotating Lens Ring",
+                  "innerRadius": 0.91,
+                  "fill": "#F7D08A22",
+                  "width": 302,
+                  "height": 302,
+                  "stroke": "#F7D08A99",
+                  "strokeWidth": 1.2
+                },
+                {
+                  "type": "ellipse",
+                  "id": "EGmUM",
+                  "x": 64,
+                  "y": 279,
+                  "name": "Lens Depth Halo",
+                  "fill": {
+                    "type": "gradient",
+                    "gradientType": "radial",
+                    "enabled": true,
+                    "rotation": 0,
+                    "size": {
+                      "width": 1,
+                      "height": 1
+                    },
+                    "colors": [
+                      {
+                        "color": "#F7D08A18",
+                        "position": 0
+                      },
+                      {
+                        "color": "#77E36B10",
+                        "position": 0.44
+                      },
+                      {
+                        "color": "#07060400",
+                        "position": 0.78
+                      }
+                    ]
+                  },
+                  "width": 262,
+                  "height": 262,
+                  "stroke": "#5F4F35",
+                  "strokeWidth": 1
+                },
+                {
+                  "type": "ellipse",
+                  "id": "umz1e",
+                  "x": 91,
+                  "y": 306,
+                  "name": "Central Glass Lens",
+                  "fill": "#09080644",
+                  "width": 208,
+                  "height": 208,
+                  "stroke": "#A7B0B8AA",
+                  "strokeWidth": 1.2,
+                  "effect": {
+                    "type": "background_blur",
+                    "radius": 12
+                  }
+                },
+                {
+                  "type": "ellipse",
+                  "id": "x8QVYJ",
+                  "x": 147,
+                  "y": 362,
+                  "name": "Center Confirmation Ring",
+                  "innerRadius": 0.84,
+                  "fill": "#77E36B66",
+                  "width": 96,
+                  "height": 96,
+                  "stroke": "$macro-green",
+                  "strokeWidth": 1.4
+                },
+                {
+                  "type": "rectangle",
+                  "id": "b0KEva",
+                  "x": 194,
+                  "y": 338,
+                  "name": "Center Vertical Crosshair",
+                  "fill": "#77E36B88",
+                  "width": 1,
+                  "height": 144
+                },
+                {
+                  "type": "rectangle",
+                  "id": "J2Ul0F",
+                  "x": 123,
+                  "y": 409,
+                  "name": "Center Horizontal Crosshair",
+                  "fill": "#77E36B88",
+                  "width": 144,
+                  "height": 1
+                },
+                {
+                  "type": "rectangle",
+                  "id": "jY2vn",
+                  "x": 194,
+                  "y": 268,
+                  "name": "Lens Ring Tick",
+                  "fill": "#F7D08AAA",
+                  "width": 1,
+                  "height": 22
+                },
+                {
+                  "type": "rectangle",
+                  "id": "UmWqh",
+                  "x": 194,
+                  "y": 530,
+                  "name": "Lens Ring Tick",
+                  "fill": "#F7D08AAA",
+                  "width": 1,
+                  "height": 22
+                },
+                {
+                  "type": "rectangle",
+                  "id": "aZICK",
+                  "x": 53,
+                  "y": 410,
+                  "name": "Lens Ring Tick",
+                  "fill": "#F7D08AAA",
+                  "width": 22,
+                  "height": 1
+                },
+                {
+                  "type": "rectangle",
+                  "id": "KLgl4",
+                  "x": 315,
+                  "y": 410,
+                  "name": "Lens Ring Tick",
+                  "fill": "#F7D08AAA",
+                  "width": 22,
+                  "height": 1
+                },
+                {
+                  "type": "ellipse",
+                  "id": "jTPUu",
+                  "x": 258,
+                  "y": 252,
+                  "name": "Candidate Amber Bubble",
+                  "fill": "#FFB84D22",
+                  "width": 78,
+                  "height": 78,
+                  "stroke": "$candidate",
+                  "strokeWidth": 1.4,
+                  "effect": {
+                    "type": "shadow",
+                    "shadowType": "outer",
+                    "color": "#FFB84D66",
+                    "blur": 22
+                  }
+                },
+                {
+                  "type": "ellipse",
+                  "id": "wHPQy",
+                  "x": 292,
+                  "y": 286,
+                  "name": "Candidate Speck Focus",
+                  "fill": "#070604",
+                  "width": 10,
+                  "height": 10,
+                  "stroke": "$candidate",
+                  "strokeWidth": 1
+                },
+                {
+                  "type": "path",
+                  "id": "oho7w",
+                  "x": 231,
+                  "y": 300,
+                  "name": "Candidate Path To Lens",
+                  "geometry": "M70 0c-32 20-50 52-70 84",
+                  "viewBox": [
+                    0,
+                    0,
+                    70,
+                    84
+                  ],
+                  "fill": "#00000000",
+                  "width": 72,
+                  "height": 86,
+                  "stroke": "#FFB84D88",
+                  "strokeWidth": 1.4,
+                  "strokeLinecap": "round"
+                },
+                {
+                  "type": "frame",
+                  "id": "nfHTc",
+                  "x": 38,
+                  "y": 492,
+                  "name": "ROI Magnifier Preview Bubble",
+                  "clip": true,
+                  "width": 150,
+                  "height": 124,
+                  "fill": "#17130EE6",
+                  "cornerRadius": 28,
+                  "stroke": "#F7D08A",
+                  "strokeWidth": 1.2,
+                  "effect": {
+                    "type": "shadow",
+                    "shadowType": "outer",
+                    "color": "#000000AA",
+                    "offset": {
+                      "x": 0,
+                      "y": 16
+                    },
+                    "blur": 28
+                  },
+                  "layout": "none",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 20,
+                      "id": "MY2rV",
+                      "x": 8,
+                      "y": 8,
+                      "name": "ROI Preview Crop",
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "./images/generated-1782555294258.png",
+                        "mode": "fill"
+                      },
+                      "width": 134,
+                      "height": 74
+                    },
+                    {
+                      "type": "ellipse",
+                      "id": "L6p36",
+                      "x": 66,
+                      "y": 38,
+                      "name": "ROI Speck Marker",
+                      "fill": "#050402",
+                      "width": 14,
+                      "height": 14,
+                      "stroke": "#FFB84D",
+                      "strokeWidth": 1
+                    },
+                    {
+                      "type": "text",
+                      "id": "WqXWX",
+                      "x": 16,
+                      "y": 90,
+                      "name": "ROI Label",
+                      "fill": "$candidate",
+                      "content": "ROI ×2.0",
+                      "fontFamily": "$font-body",
+                      "fontSize": 10,
+                      "fontWeight": "700",
+                      "letterSpacing": 1.1
+                    },
+                    {
+                      "type": "text",
+                      "id": "HCtH4",
+                      "x": 82,
+                      "y": 88,
+                      "name": "ROI Score",
+                      "fill": "$text-primary",
+                      "content": "87%",
+                      "fontFamily": "$font-body",
+                      "fontSize": 18,
+                      "fontWeight": "800"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "ligFT",
+                  "x": 224,
+                  "y": 538,
+                  "name": "Centering Direction Hint",
+                  "width": 132,
+                  "height": 48,
+                  "fill": "#0D0A07CC",
+                  "cornerRadius": 24,
+                  "stroke": "#3B3024",
+                  "strokeWidth": 1,
+                  "gap": 8,
+                  "padding": [
+                    0,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "CJFW4",
+                      "name": "Direction Arrow Icon",
+                      "width": 22,
+                      "height": 22,
+                      "icon": "move-up-right",
+                      "library": "lucide",
+                      "fill": "$candidate"
+                    },
+                    {
+                      "type": "text",
+                      "id": "iPCcG",
+                      "name": "Direction Hint Text",
+                      "fill": "$text-primary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "慢慢靠近右上热区",
+                      "lineHeight": 1.2,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 12,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "CZvpk",
+                  "x": 30,
+                  "y": 638,
+                  "name": "Stage Progress Strip",
+                  "width": 330,
+                  "height": 48,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "vc1fT",
+                      "name": "Stage Progress Label",
+                      "fill": "$steel",
+                      "content": "SEARCH → CENTER → ZOOM → CONFIRM",
+                      "fontFamily": "$font-body",
+                      "fontSize": 11,
+                      "fontWeight": "700",
+                      "letterSpacing": 1.2
+                    },
+                    {
+                      "type": "frame",
+                      "id": "amXOP",
+                      "name": "Stage Progress Track",
+                      "width": "fill_container",
+                      "height": 8,
+                      "fill": "#1A130D",
+                      "cornerRadius": 4,
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 4,
+                          "id": "JQ1go",
+                          "name": "Search Progress Segment",
+                          "fill": "#77E36B",
+                          "width": 80,
+                          "height": 8
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 4,
+                          "id": "s8s7gy",
+                          "name": "Center Progress Segment",
+                          "fill": "#77E36B",
+                          "width": 80,
+                          "height": 8
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 4,
+                          "id": "OOmz0",
+                          "name": "Zoom Progress Segment",
+                          "fill": "#FFB84D",
+                          "width": 80,
+                          "height": 8
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 4,
+                          "id": "P3Mlz5",
+                          "name": "Confirm Progress Segment",
+                          "fill": "#4D3B24",
+                          "width": 62,
+                          "height": 8
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "u2pZFQ",
+                  "x": 18,
+                  "y": 714,
+                  "name": "Camera Controls Dock",
+                  "width": 354,
+                  "height": 140,
+                  "fill": "#17130EEA",
+                  "cornerRadius": 36,
+                  "stroke": "#4E3C25",
+                  "strokeWidth": 1.2,
+                  "effect": {
+                    "type": "shadow",
+                    "shadowType": "outer",
+                    "color": "#000000AA",
+                    "offset": {
+                      "x": 0,
+                      "y": 16
+                    },
+                    "blur": 26
+                  },
+                  "gap": 14,
+                  "padding": 14,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "P0dcs",
+                      "name": "Torch Control",
+                      "width": 68,
+                      "height": 92,
+                      "fill": "#23180E",
+                      "cornerRadius": 28,
+                      "stroke": "#654A27",
+                      "strokeWidth": 1,
+                      "layout": "vertical",
+                      "gap": 8,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "c6a164",
+                          "name": "Torch Icon",
+                          "width": 24,
+                          "height": 24,
+                          "icon": "flashlight",
+                          "library": "lucide",
+                          "fill": "$warm-light"
+                        },
+                        {
+                          "type": "text",
+                          "id": "y2B0s",
+                          "name": "Torch Label",
+                          "fill": "$text-secondary",
+                          "content": "Auto",
+                          "fontFamily": "$font-body",
+                          "fontSize": 11,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "a3TpoN",
+                      "name": "Macro Zoom Dial",
+                      "width": 176,
+                      "height": 112,
+                      "fill": "#0B0805",
+                      "cornerRadius": 34,
+                      "stroke": "#A06D2B",
+                      "strokeWidth": 1.2,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "ellipse",
+                          "id": "iSeIY",
+                          "x": 40,
+                          "y": 10,
+                          "name": "Zoom Dial Outer",
+                          "innerRadius": 0.72,
+                          "fill": "#2D2114",
+                          "width": 96,
+                          "height": 96,
+                          "stroke": "#F7D08A",
+                          "strokeWidth": 1
+                        },
+                        {
+                          "type": "ellipse",
+                          "id": "huZE3",
+                          "x": 52,
+                          "y": 22,
+                          "name": "Zoom Dial Active Arc",
+                          "innerRadius": 0.78,
+                          "startAngle": 205,
+                          "sweepAngle": 92,
+                          "fill": "$candidate",
+                          "width": 72,
+                          "height": 72
+                        },
+                        {
+                          "type": "text",
+                          "id": "s0sH6z",
+                          "x": 65,
+                          "y": 38,
+                          "name": "Zoom Dial Value",
+                          "fill": "$text-primary",
+                          "content": "2×",
+                          "fontFamily": "$font-heading",
+                          "fontSize": 24,
+                          "fontWeight": "800"
+                        },
+                        {
+                          "type": "text",
+                          "id": "dUOPw",
+                          "x": 48,
+                          "y": 69,
+                          "name": "Zoom Dial Caption",
+                          "fill": "$candidate",
+                          "content": "RECOMMENDED",
+                          "fontFamily": "$font-body",
+                          "fontSize": 10,
+                          "fontWeight": "700",
+                          "letterSpacing": 1
+                        },
+                        {
+                          "type": "text",
+                          "id": "aXyqo",
+                          "x": 26,
+                          "y": 94,
+                          "name": "Zoom Mark 1x",
+                          "fill": "#776A5C",
+                          "content": "1x",
+                          "fontFamily": "$font-body",
+                          "fontSize": 10,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "y14zhe",
+                          "x": 62,
+                          "y": 94,
+                          "name": "Zoom Mark 1.5",
+                          "fill": "#776A5C",
+                          "content": "1.5",
+                          "fontFamily": "$font-body",
+                          "fontSize": 10,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "HZKxB",
+                          "x": 102,
+                          "y": 94,
+                          "name": "Zoom Mark 2x",
+                          "fill": "$warm-light",
+                          "content": "2x",
+                          "fontFamily": "$font-body",
+                          "fontSize": 10,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "rG8Uw",
+                          "x": 139,
+                          "y": 94,
+                          "name": "Zoom Mark 3x",
+                          "fill": "#776A5C",
+                          "content": "3x",
+                          "fontFamily": "$font-body",
+                          "fontSize": 10,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Q8CTu6",
+                      "name": "Lock Target Control",
+                      "width": 68,
+                      "height": 92,
+                      "fill": "#2D120F",
+                      "cornerRadius": 28,
+                      "stroke": "$confirm",
+                      "strokeWidth": 1,
+                      "layout": "vertical",
+                      "gap": 8,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "v0yyA",
+                          "name": "Lock Target Icon",
+                          "width": 25,
+                          "height": 25,
+                          "icon": "scan-line",
+                          "library": "lucide",
+                          "fill": "$confirm"
+                        },
+                        {
+                          "type": "text",
+                          "id": "p32jx",
+                          "name": "Lock Target Label",
+                          "fill": "#FFD2CC",
+                          "content": "Lock",
+                          "fontFamily": "$font-body",
+                          "fontSize": 11,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "rectangle",
+                  "cornerRadius": 2,
+                  "id": "NkATn",
+                  "x": 150,
+                  "y": 872,
+                  "name": "Home Indicator",
+                  "fill": "#FFF7E880",
+                  "width": 90,
+                  "height": 4
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "T3S3O",
+          "x": 72,
+          "y": 304,
+          "name": "Scheme C Design Notes",
+          "width": 486,
+          "height": 610,
+          "fill": "#17130ECC",
+          "cornerRadius": 28,
+          "stroke": "#463723",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 18,
+          "padding": 24,
+          "children": [
+            {
+              "type": "text",
+              "id": "DBAgC",
+              "name": "Notes Title",
+              "fill": "$text-primary",
+              "content": "Selectable concept highlights",
+              "fontFamily": "$font-heading",
+              "fontSize": 22,
+              "fontWeight": "800"
+            },
+            {
+              "type": "frame",
+              "id": "mxTLY",
+              "name": "Note 微距取景器",
+              "width": "fill_container",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "RIRZx",
+                  "name": "Note 微距取景器 Dot",
+                  "fill": "$candidate",
+                  "width": 10,
+                  "height": 10
+                },
+                {
+                  "type": "frame",
+                  "id": "mf3lM",
+                  "name": "Note 微距取景器 Text",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 5,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "wlFA0",
+                      "name": "Note 微距取景器 Heading",
+                      "fill": "$text-primary",
+                      "content": "微距取景器",
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 15,
+                      "fontWeight": "800"
+                    },
+                    {
+                      "type": "text",
+                      "id": "YqXg6",
+                      "name": "Note 微距取景器 Body",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "中心大圆形镜片承接 Stage 2，对准时用景深光晕和绿色确认环降低噪声。",
+                      "lineHeight": 1.45,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "NdC2S",
+              "name": "Note ROI 放大泡",
+              "width": "fill_container",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "lYTUQ",
+                  "name": "Note ROI 放大泡 Dot",
+                  "fill": "$candidate",
+                  "width": 10,
+                  "height": 10
+                },
+                {
+                  "type": "frame",
+                  "id": "uq4Ki",
+                  "name": "Note ROI 放大泡 Text",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 5,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "bZbJV",
+                      "name": "Note ROI 放大泡 Heading",
+                      "fill": "$text-primary",
+                      "content": "ROI 放大泡",
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 15,
+                      "fontWeight": "800"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Dh1xg",
+                      "name": "Note ROI 放大泡 Body",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "候选太小时先给局部放大预览，让用户理解为什么要靠近右上热区。",
+                      "lineHeight": 1.45,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "RTd2o",
+              "name": "Note 触觉变焦拨轮",
+              "width": "fill_container",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "qSNXY",
+                  "name": "Note 触觉变焦拨轮 Dot",
+                  "fill": "$candidate",
+                  "width": 10,
+                  "height": 10
+                },
+                {
+                  "type": "frame",
+                  "id": "yDo2v",
+                  "name": "Note 触觉变焦拨轮 Text",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 5,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "fdP55",
+                      "name": "Note 触觉变焦拨轮 Heading",
+                      "fill": "$text-primary",
+                      "content": "触觉变焦拨轮",
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 15,
+                      "fontWeight": "800"
+                    },
+                    {
+                      "type": "text",
+                      "id": "NuuUU",
+                      "name": "Note 触觉变焦拨轮 Body",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "1x / 1.5x / 2x / 3x 刻度把技术要求转化为相机手感。",
+                      "lineHeight": 1.45,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "CVSlt",
+              "name": "Note 证据照片语言",
+              "width": "fill_container",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "LnAH3",
+                  "name": "Note 证据照片语言 Dot",
+                  "fill": "$candidate",
+                  "width": 10,
+                  "height": 10
+                },
+                {
+                  "type": "frame",
+                  "id": "CBVPK",
+                  "name": "Note 证据照片语言 Text",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 5,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "oJTFQ",
+                      "name": "Note 证据照片语言 Heading",
+                      "fill": "$text-primary",
+                      "content": "证据照片语言",
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 15,
+                      "fontWeight": "800"
+                    },
+                    {
+                      "type": "text",
+                      "id": "CWsXC",
+                      "name": "Note 证据照片语言 Body",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "确认后可冻结成训练样本，和 Trophy 胶片复盘自然衔接。",
+                      "lineHeight": 1.45,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "jsR4i",
+              "name": "Comparison Metrics",
+              "width": "fill_container",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "JHoB5",
+                  "name": "Metric 记忆点",
+                  "width": "fill_container",
+                  "fill": "#0D0A07",
+                  "cornerRadius": 16,
+                  "stroke": "#2F261A",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": 12,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "p0BSN7",
+                      "name": "Metric 记忆点 Label",
+                      "fill": "$steel",
+                      "content": "记忆点",
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 12,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "NFmho",
+                      "name": "Metric 记忆点 Value",
+                      "fill": "#FFB84D",
+                      "content": "最高",
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 18,
+                      "fontWeight": "900"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "bDe88",
+                  "name": "Metric 成本",
+                  "width": "fill_container",
+                  "fill": "#0D0A07",
+                  "cornerRadius": 16,
+                  "stroke": "#2F261A",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": 12,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "RpzwS",
+                      "name": "Metric 成本 Label",
+                      "fill": "$steel",
+                      "content": "成本",
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 12,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "lkCwU",
+                      "name": "Metric 成本 Value",
+                      "fill": "#A7B0B8",
+                      "content": "高",
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 18,
+                      "fontWeight": "900"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "cUhA9",
+                  "name": "Metric 闭环",
+                  "width": "fill_container",
+                  "fill": "#0D0A07",
+                  "cornerRadius": 16,
+                  "stroke": "#2F261A",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": 12,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Q6RCu",
+                      "name": "Metric 闭环 Label",
+                      "fill": "$steel",
+                      "content": "闭环",
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 12,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "WZ98g",
+                      "name": "Metric 闭环 Value",
+                      "fill": "#77E36B",
+                      "content": "ROI 强",
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 18,
+                      "fontWeight": "900"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variables": {
+    "base": {
+      "type": "color",
+      "value": "#070604"
+    },
+    "candidate": {
+      "type": "color",
+      "value": "#FFB84D"
+    },
+    "confirm": {
+      "type": "color",
+      "value": "#FF3B30"
+    },
+    "font-body": {
+      "type": "string",
+      "value": "Inter"
+    },
+    "font-heading": {
+      "type": "string",
+      "value": "Geist"
+    },
+    "glass-dark": {
+      "type": "color",
+      "value": "#17130ECC"
+    },
+    "macro-green": {
+      "type": "color",
+      "value": "#77E36B"
+    },
+    "panel": {
+      "type": "color",
+      "value": "#17130E"
+    },
+    "steel": {
+      "type": "color",
+      "value": "#A7B0B8"
+    },
+    "text-primary": {
+      "type": "color",
+      "value": "#FFF7E8"
+    },
+    "text-secondary": {
+      "type": "color",
+      "value": "#B9A98D"
+    },
+    "warm-light": {
+      "type": "color",
+      "value": "#F7D08A"
+    }
+  }
+}

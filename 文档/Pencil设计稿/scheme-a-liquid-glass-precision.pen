@@ -1,0 +1,1785 @@
+{
+  "version": "2.13",
+  "children": [
+    {
+      "type": "frame",
+      "id": "g01tA",
+      "x": 0,
+      "y": 0,
+      "name": "Scheme A - Liquid Glass Precision",
+      "clip": true,
+      "width": 393,
+      "height": 852,
+      "fill": "$base",
+      "cornerRadius": 44,
+      "effect": {
+        "type": "shadow",
+        "shadowType": "outer",
+        "color": "#00000088",
+        "offset": {
+          "x": 0,
+          "y": 18
+        },
+        "blur": 48
+      },
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "GhgEM",
+          "x": 0,
+          "y": 0,
+          "name": "Live Camera Field",
+          "clip": true,
+          "width": 393,
+          "height": 852,
+          "fill": {
+            "type": "gradient",
+            "gradientType": "linear",
+            "enabled": true,
+            "rotation": 184,
+            "size": {
+              "height": 1
+            },
+            "colors": [
+              {
+                "color": "#05070A",
+                "position": 0
+              },
+              {
+                "color": "#091117",
+                "position": 0.48
+              },
+              {
+                "color": "#020304",
+                "position": 1
+              }
+            ]
+          },
+          "layout": "none",
+          "children": [
+            {
+              "type": "ellipse",
+              "id": "mIj68",
+              "x": 0,
+              "y": 116,
+              "name": "Low Light Wall Gradient",
+              "fill": {
+                "type": "gradient",
+                "gradientType": "radial",
+                "enabled": true,
+                "opacity": 0.72,
+                "rotation": 0,
+                "size": {
+                  "width": 1,
+                  "height": 1
+                },
+                "colors": [
+                  {
+                    "color": "#16252C99",
+                    "position": 0
+                  },
+                  {
+                    "color": "#05070A00",
+                    "position": 1
+                  }
+                ]
+              },
+              "width": 392,
+              "height": 500
+            },
+            {
+              "type": "rectangle",
+              "cornerRadius": 20,
+              "id": "YrZez",
+              "x": 36,
+              "y": 140,
+              "name": "Soft Optical Scan Plane",
+              "fill": "#FFFFFF05",
+              "width": 321,
+              "height": 560,
+              "stroke": "#DCE7F214",
+              "strokeWidth": 1
+            },
+            {
+              "type": "rectangle",
+              "id": "bWNSO",
+              "x": 38,
+              "y": 154,
+              "name": "Camera Sensor Grain 1",
+              "fill": "#FFFFFF07",
+              "width": 1,
+              "height": 528
+            },
+            {
+              "type": "rectangle",
+              "id": "E4m06",
+              "x": 74,
+              "y": 154,
+              "name": "Camera Sensor Grain 2",
+              "fill": "#FFFFFF07",
+              "width": 1,
+              "height": 528
+            },
+            {
+              "type": "rectangle",
+              "id": "EXOJM",
+              "x": 110,
+              "y": 154,
+              "name": "Camera Sensor Grain 3",
+              "fill": "#FFFFFF07",
+              "width": 1,
+              "height": 528
+            },
+            {
+              "type": "rectangle",
+              "id": "a2nhxC",
+              "x": 146,
+              "y": 154,
+              "name": "Camera Sensor Grain 4",
+              "fill": "#FFFFFF07",
+              "width": 1,
+              "height": 528
+            },
+            {
+              "type": "rectangle",
+              "id": "ekdzS",
+              "x": 182,
+              "y": 154,
+              "name": "Camera Sensor Grain 5",
+              "fill": "#FFFFFF07",
+              "width": 1,
+              "height": 528
+            },
+            {
+              "type": "rectangle",
+              "id": "f3F0y",
+              "x": 218,
+              "y": 154,
+              "name": "Camera Sensor Grain 6",
+              "fill": "#FFFFFF07",
+              "width": 1,
+              "height": 528
+            },
+            {
+              "type": "rectangle",
+              "id": "ESeAP",
+              "x": 254,
+              "y": 154,
+              "name": "Camera Sensor Grain 7",
+              "fill": "#FFFFFF07",
+              "width": 1,
+              "height": 528
+            },
+            {
+              "type": "rectangle",
+              "id": "ofK4M",
+              "x": 290,
+              "y": 154,
+              "name": "Camera Sensor Grain 8",
+              "fill": "#FFFFFF07",
+              "width": 1,
+              "height": 528
+            },
+            {
+              "type": "rectangle",
+              "id": "B9mg2Z",
+              "x": 326,
+              "y": 154,
+              "name": "Camera Sensor Grain 9",
+              "fill": "#FFFFFF07",
+              "width": 1,
+              "height": 528
+            },
+            {
+              "type": "rectangle",
+              "id": "uXFTu",
+              "x": 44,
+              "y": 176,
+              "name": "Horizontal Sensor Grain 1",
+              "fill": "#FFFFFF06",
+              "width": 306,
+              "height": 1
+            },
+            {
+              "type": "rectangle",
+              "id": "uwcja",
+              "x": 44,
+              "y": 248,
+              "name": "Horizontal Sensor Grain 2",
+              "fill": "#FFFFFF06",
+              "width": 306,
+              "height": 1
+            },
+            {
+              "type": "rectangle",
+              "id": "twNRa",
+              "x": 44,
+              "y": 320,
+              "name": "Horizontal Sensor Grain 3",
+              "fill": "#FFFFFF06",
+              "width": 306,
+              "height": 1
+            },
+            {
+              "type": "rectangle",
+              "id": "KZvrq",
+              "x": 44,
+              "y": 392,
+              "name": "Horizontal Sensor Grain 4",
+              "fill": "#FFFFFF06",
+              "width": 306,
+              "height": 1
+            },
+            {
+              "type": "rectangle",
+              "id": "xDUJn",
+              "x": 44,
+              "y": 464,
+              "name": "Horizontal Sensor Grain 5",
+              "fill": "#FFFFFF06",
+              "width": 306,
+              "height": 1
+            },
+            {
+              "type": "rectangle",
+              "id": "CD52v",
+              "x": 44,
+              "y": 536,
+              "name": "Horizontal Sensor Grain 6",
+              "fill": "#FFFFFF06",
+              "width": 306,
+              "height": 1
+            },
+            {
+              "type": "rectangle",
+              "id": "tHJQc",
+              "x": 44,
+              "y": 608,
+              "name": "Horizontal Sensor Grain 7",
+              "fill": "#FFFFFF06",
+              "width": 306,
+              "height": 1
+            },
+            {
+              "type": "ellipse",
+              "id": "NkHp8",
+              "x": 251,
+              "y": 354,
+              "name": "Tiny Mosquito Candidate Mark",
+              "rotation": -12.000000000000002,
+              "fill": "#121A1A",
+              "width": 8,
+              "height": 5,
+              "stroke": "#DCE7F233",
+              "strokeWidth": 0.6
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "P3ZEe",
+          "x": 0,
+          "y": 0,
+          "name": "iOS Status Bar",
+          "width": 393,
+          "height": 62,
+          "fill": "#00000000",
+          "padding": [
+            18,
+            28,
+            0,
+            28
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "i4RGUU",
+              "name": "Status Time",
+              "fill": "$primary-text",
+              "content": "9:41",
+              "fontFamily": "Inter",
+              "fontSize": 15,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "vlP8U",
+              "name": "Status Indicators",
+              "gap": 7,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "w7dELo",
+                  "name": "Cellular Signal Icon",
+                  "width": 17,
+                  "height": 17,
+                  "icon": "chart-no-axes-column-increasing",
+                  "library": "lucide",
+                  "fill": "$primary-text"
+                },
+                {
+                  "type": "icon",
+                  "id": "kWpCm",
+                  "name": "WiFi Icon",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "wifi",
+                  "library": "lucide",
+                  "fill": "$primary-text"
+                },
+                {
+                  "type": "rectangle",
+                  "cornerRadius": 3,
+                  "id": "tjvIG",
+                  "name": "Battery Icon",
+                  "fill": "#DCE7F21A",
+                  "width": 25,
+                  "height": 12,
+                  "stroke": "$primary-text",
+                  "strokeWidth": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "n0hg7M",
+          "x": 18,
+          "y": 68,
+          "name": "Glass Detection Band",
+          "width": 357,
+          "height": 74,
+          "fill": "#FFFFFF14",
+          "cornerRadius": 22,
+          "stroke": "#FFFFFF24",
+          "strokeWidth": 1,
+          "effect": [
+            {
+              "type": "background_blur",
+              "radius": 18
+            },
+            {
+              "type": "shadow",
+              "shadowType": "outer",
+              "color": "#00000066",
+              "offset": {
+                "x": 0,
+                "y": 10
+              },
+              "blur": 28
+            }
+          ],
+          "gap": 12,
+          "padding": [
+            12,
+            14
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "QnUVx",
+              "name": "Environment Quality Dots",
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "hpxjk",
+                  "name": "Light OK",
+                  "width": 12,
+                  "height": 12,
+                  "fill": "#43D7B526",
+                  "cornerRadius": 6,
+                  "stroke": "$signal",
+                  "strokeWidth": 1,
+                  "layout": "none",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "zvn6M",
+                      "x": 4,
+                      "y": 4,
+                      "name": "Light OK Core",
+                      "fill": "$signal",
+                      "width": 4,
+                      "height": 4
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "BGGrQ",
+                  "name": "Stable OK",
+                  "width": 12,
+                  "height": 12,
+                  "fill": "#43D7B526",
+                  "cornerRadius": 6,
+                  "stroke": "$signal",
+                  "strokeWidth": 1,
+                  "layout": "none",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "Zkytc",
+                      "x": 4,
+                      "y": 4,
+                      "name": "Stable OK Core",
+                      "fill": "$signal",
+                      "width": 4,
+                      "height": 4
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "bvBru",
+                  "name": "Background OK",
+                  "width": 12,
+                  "height": 12,
+                  "fill": "#43D7B526",
+                  "cornerRadius": 6,
+                  "stroke": "$signal",
+                  "strokeWidth": 1,
+                  "layout": "none",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "nUoKJ",
+                      "x": 4,
+                      "y": 4,
+                      "name": "Background OK Core",
+                      "fill": "$signal",
+                      "width": 4,
+                      "height": 4
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "HAUNR",
+              "name": "Guidance Copy Stack",
+              "width": 196,
+              "layout": "vertical",
+              "gap": 3,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "k4rATN",
+                  "name": "Current Guidance",
+                  "fill": "$primary-text",
+                  "content": "Slow scan the wall",
+                  "fontFamily": "$font-heading",
+                  "fontSize": 15,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "yTSlR",
+                  "name": "Guidance Detail",
+                  "fill": "$secondary-text",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Candidate signal forming near center",
+                  "fontFamily": "$font-body",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "QErZp",
+              "name": "Stage Pill",
+              "fill": "#43D7B51F",
+              "cornerRadius": 14,
+              "stroke": "#43D7B566",
+              "strokeWidth": 1,
+              "gap": 6,
+              "padding": [
+                7,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "XZiO3",
+                  "name": "Stage Live Dot",
+                  "fill": "$signal",
+                  "width": 6,
+                  "height": 6
+                },
+                {
+                  "type": "text",
+                  "id": "WouFy",
+                  "name": "Stage Label",
+                  "fill": "$signal",
+                  "content": "STAGE 1",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 10,
+                  "fontWeight": "600"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "au1Sy",
+          "x": 47,
+          "y": 190,
+          "name": "Optical Targeting Field",
+          "width": 300,
+          "height": 300,
+          "fill": "#00000000",
+          "layout": "none",
+          "children": [
+            {
+              "type": "ellipse",
+              "id": "HtRFP",
+              "x": 72,
+              "y": 72,
+              "name": "Center Acquisition Ring",
+              "fill": "#00000000",
+              "width": 156,
+              "height": 156,
+              "stroke": "#DCE7F255",
+              "strokeWidth": 1.2
+            },
+            {
+              "type": "ellipse",
+              "id": "OZy8N",
+              "x": 104,
+              "y": 104,
+              "name": "Inner Stability Ring",
+              "fill": "#00000000",
+              "width": 92,
+              "height": 92,
+              "stroke": "#43D7B588",
+              "strokeWidth": 1
+            },
+            {
+              "type": "ellipse",
+              "id": "akeu8",
+              "x": 188,
+              "y": 154,
+              "name": "Candidate Glass Halo",
+              "fill": {
+                "type": "gradient",
+                "gradientType": "radial",
+                "enabled": true,
+                "opacity": 0.82,
+                "rotation": 0,
+                "size": {
+                  "width": 1,
+                  "height": 1
+                },
+                "colors": [
+                  {
+                    "color": "#F2C94C44",
+                    "position": 0
+                  },
+                  {
+                    "color": "#F2C94C14",
+                    "position": 0.55
+                  },
+                  {
+                    "color": "#F2C94C00",
+                    "position": 1
+                  }
+                ]
+              },
+              "width": 82,
+              "height": 82,
+              "stroke": "#F2C94CAA",
+              "strokeWidth": 1.2
+            },
+            {
+              "type": "ellipse",
+              "id": "xixEY",
+              "x": 222,
+              "y": 188,
+              "name": "Candidate Focus Core",
+              "fill": "#F2C94C55",
+              "width": 14,
+              "height": 14,
+              "stroke": "#F2C94C",
+              "strokeWidth": 1
+            },
+            {
+              "type": "path",
+              "id": "NhIHn",
+              "x": 149,
+              "y": 146,
+              "name": "Optical Pull Line",
+              "geometry": "M4 18c26-16 58-14 86 40",
+              "viewBox": [
+                0,
+                0,
+                94,
+                64
+              ],
+              "fill": "#00000000",
+              "width": 94,
+              "height": 64,
+              "stroke": "#F2C94C88",
+              "strokeWidth": 1.2,
+              "strokeLinecap": "round"
+            },
+            {
+              "type": "rectangle",
+              "cornerRadius": 1,
+              "id": "AD7Jm",
+              "x": 139,
+              "y": 0,
+              "name": "Top Alignment Tick",
+              "fill": "#DCE7F288",
+              "width": 22,
+              "height": 2
+            },
+            {
+              "type": "rectangle",
+              "cornerRadius": 1,
+              "id": "WWvKi",
+              "x": 139,
+              "y": 298,
+              "name": "Bottom Alignment Tick",
+              "fill": "#DCE7F288",
+              "width": 22,
+              "height": 2
+            },
+            {
+              "type": "rectangle",
+              "cornerRadius": 1,
+              "id": "DceWc",
+              "x": 0,
+              "y": 139,
+              "name": "Left Alignment Tick",
+              "fill": "#DCE7F288",
+              "width": 2,
+              "height": 22
+            },
+            {
+              "type": "rectangle",
+              "cornerRadius": 1,
+              "id": "P3raHr",
+              "x": 298,
+              "y": 139,
+              "name": "Right Alignment Tick",
+              "fill": "#DCE7F288",
+              "width": 2,
+              "height": 22
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "RVBXQ",
+          "x": 312,
+          "y": 318,
+          "name": "Optical Direction Cue",
+          "width": 48,
+          "height": 92,
+          "fill": "#FFFFFF12",
+          "cornerRadius": 24,
+          "stroke": "#FFFFFF26",
+          "strokeWidth": 1,
+          "effect": [
+            {
+              "type": "background_blur",
+              "radius": 16
+            },
+            {
+              "type": "shadow",
+              "shadowType": "outer",
+              "color": "#00000066",
+              "offset": {
+                "x": 0,
+                "y": 8
+              },
+              "blur": 20
+            }
+          ],
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            10,
+            8
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "c7Nlkx",
+              "name": "Move Right Cue Icon",
+              "width": 24,
+              "height": 24,
+              "icon": "chevron-right",
+              "library": "lucide",
+              "fill": "$candidate"
+            },
+            {
+              "type": "text",
+              "id": "k5hpQw",
+              "name": "Move Right Cue Text",
+              "fill": "$candidate",
+              "content": "18 px",
+              "fontFamily": "$font-mono",
+              "fontSize": 10,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "m9imr1",
+          "x": 38,
+          "y": 500,
+          "name": "Two Stage Progress Rail",
+          "width": 317,
+          "height": 46,
+          "fill": "#00000000",
+          "layout": "vertical",
+          "gap": 8,
+          "children": [
+            {
+              "type": "frame",
+              "id": "AilJZ",
+              "name": "Stage Step Labels",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "yBAys",
+                  "name": "Step SEARCH",
+                  "fill": "$primary-text",
+                  "content": "SEARCH",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 9,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "A5IwPZ",
+                  "name": "Step CENTER",
+                  "fill": "$primary-text",
+                  "content": "CENTER",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 9,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "Z3RdI",
+                  "name": "Step ZOOM",
+                  "fill": "$primary-text",
+                  "content": "ZOOM",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 9,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "wTpHg",
+                  "name": "Step CONFIRM",
+                  "fill": "$secondary-text",
+                  "content": "CONFIRM",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 9,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Q7ZOXk",
+              "name": "Stage Rail Track",
+              "width": "fill_container",
+              "height": 8,
+              "fill": "#DCE7F21A",
+              "cornerRadius": 4,
+              "gap": 5,
+              "children": [
+                {
+                  "type": "rectangle",
+                  "cornerRadius": 4,
+                  "id": "TLX9u",
+                  "name": "Search Complete",
+                  "fill": "#43D7B5",
+                  "width": "fill_container",
+                  "height": "fill_container"
+                },
+                {
+                  "type": "rectangle",
+                  "cornerRadius": 4,
+                  "id": "fg5cj",
+                  "name": "Center Active",
+                  "fill": "#43D7B5",
+                  "width": "fill_container",
+                  "height": "fill_container"
+                },
+                {
+                  "type": "rectangle",
+                  "cornerRadius": 4,
+                  "id": "Y8Ws4m",
+                  "name": "Zoom Required",
+                  "fill": "#F2C94C",
+                  "width": "fill_container",
+                  "height": "fill_container"
+                },
+                {
+                  "type": "rectangle",
+                  "cornerRadius": 4,
+                  "id": "LLNKd",
+                  "name": "Confirm Pending",
+                  "fill": "#FFFFFF24",
+                  "width": "fill_container",
+                  "height": "fill_container"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "hxCKA",
+          "x": 30,
+          "y": 565,
+          "name": "Glass Guidance Card",
+          "width": 333,
+          "height": 86,
+          "fill": "#FFFFFF12",
+          "cornerRadius": 24,
+          "stroke": "#FFFFFF24",
+          "strokeWidth": 1,
+          "effect": [
+            {
+              "type": "background_blur",
+              "radius": 20
+            },
+            {
+              "type": "shadow",
+              "shadowType": "outer",
+              "color": "#00000077",
+              "offset": {
+                "x": 0,
+                "y": 12
+              },
+              "blur": 28
+            }
+          ],
+          "gap": 14,
+          "padding": [
+            14,
+            16
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "jgmC4",
+              "name": "Guidance Orb",
+              "width": 48,
+              "height": 48,
+              "fill": "#43D7B51C",
+              "cornerRadius": 24,
+              "stroke": "#43D7B599",
+              "strokeWidth": 1,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "n7B8m",
+                  "x": 15,
+                  "y": 15,
+                  "name": "Guidance Orb Core",
+                  "fill": "$signal",
+                  "width": 18,
+                  "height": 18
+                },
+                {
+                  "type": "ellipse",
+                  "id": "JggsQ",
+                  "x": 6,
+                  "y": 6,
+                  "name": "Guidance Orb Ring",
+                  "fill": "#00000000",
+                  "width": 36,
+                  "height": 36,
+                  "stroke": "#43D7B555",
+                  "strokeWidth": 1
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ssDvx",
+              "name": "Guidance Message",
+              "width": 232,
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "rPLoG",
+                  "name": "Guidance Primary",
+                  "fill": "$primary-text",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Hold center, then zoom to 2x",
+                  "fontFamily": "$font-heading",
+                  "fontSize": 18,
+                  "fontWeight": "650"
+                },
+                {
+                  "type": "text",
+                  "id": "aT9Pk",
+                  "name": "Guidance Secondary",
+                  "fill": "$secondary-text",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Stage 2 starts after 1 second of stable alignment.",
+                  "fontFamily": "$font-body",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "gccbO",
+          "x": 18,
+          "y": 680,
+          "name": "Bottom Precision Controls",
+          "width": 357,
+          "height": 128,
+          "fill": "#FFFFFF12",
+          "cornerRadius": 28,
+          "stroke": "#FFFFFF24",
+          "strokeWidth": 1,
+          "effect": [
+            {
+              "type": "background_blur",
+              "radius": 22
+            },
+            {
+              "type": "shadow",
+              "shadowType": "outer",
+              "color": "#00000088",
+              "offset": {
+                "x": 0,
+                "y": 14
+              },
+              "blur": 34
+            }
+          ],
+          "layout": "vertical",
+          "gap": 14,
+          "padding": [
+            14,
+            16
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "favJ1",
+              "name": "Control Row",
+              "width": "fill_container",
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "N8iNQ",
+                  "name": "Auto Torch Control",
+                  "width": 64,
+                  "fill": "#FFFFFF10",
+                  "cornerRadius": 18,
+                  "stroke": "#FFFFFF20",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 5,
+                  "padding": [
+                    9,
+                    11
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "i758Os",
+                      "name": "Torch Icon",
+                      "width": 22,
+                      "height": 22,
+                      "icon": "flashlight",
+                      "library": "lucide",
+                      "fill": "$signal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "oPeLk",
+                      "name": "Torch Label",
+                      "fill": "$primary-text",
+                      "content": "AUTO",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 9,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "TvEF4",
+                  "name": "Precision Zoom Control",
+                  "width": 149,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "VOp2E",
+                      "name": "Zoom Header",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "aIYeh",
+                          "name": "Zoom Label",
+                          "fill": "$primary-text",
+                          "content": "Precision zoom",
+                          "fontFamily": "$font-body",
+                          "fontSize": 12,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Og4mo",
+                          "name": "Zoom Value",
+                          "fill": "$candidate",
+                          "content": "1.7x",
+                          "fontFamily": "$font-mono",
+                          "fontSize": 12,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "r5jNy",
+                      "name": "Zoom Track",
+                      "width": 149,
+                      "height": 24,
+                      "fill": "#00000000",
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "M0fck",
+                          "x": 0,
+                          "y": 10,
+                          "name": "Zoom Track Base",
+                          "fill": "#DCE7F22A",
+                          "width": 149,
+                          "height": 4
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "rWLI5",
+                          "x": 0,
+                          "y": 10,
+                          "name": "Zoom Track Active",
+                          "fill": "$candidate",
+                          "width": 98,
+                          "height": 4
+                        },
+                        {
+                          "type": "ellipse",
+                          "id": "tCYqI",
+                          "x": 91,
+                          "y": 3,
+                          "name": "Zoom Thumb",
+                          "fill": "#F2C94C",
+                          "width": 18,
+                          "height": 18,
+                          "stroke": "#FFFFFFAA",
+                          "strokeWidth": 1,
+                          "effect": {
+                            "type": "shadow",
+                            "shadowType": "outer",
+                            "color": "#F2C94C88",
+                            "blur": 14
+                          }
+                        },
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 1,
+                          "id": "OjAA5",
+                          "x": 116,
+                          "y": 5,
+                          "name": "Recommended 2x Tick",
+                          "fill": "$signal",
+                          "width": 2,
+                          "height": 14
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "ts8y5",
+                  "name": "End Hunt Control",
+                  "width": 64,
+                  "fill": "#FF4D4D18",
+                  "cornerRadius": 18,
+                  "stroke": "#FF4D4D55",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 5,
+                  "padding": [
+                    9,
+                    11
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "rcDqJ",
+                      "name": "End Icon",
+                      "width": 22,
+                      "height": 22,
+                      "icon": "x",
+                      "library": "lucide",
+                      "fill": "$confirm"
+                    },
+                    {
+                      "type": "text",
+                      "id": "L5s3Nv",
+                      "name": "End Label",
+                      "fill": "$confirm",
+                      "content": "END",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 9,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "z2uhXm",
+              "name": "Confirmation Status Strip",
+              "width": "fill_container",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "HCOw6",
+                  "name": "Candidate Readout",
+                  "fill": "#FFFFFF0F",
+                  "cornerRadius": 12,
+                  "stroke": "#FFFFFF18",
+                  "strokeWidth": 1,
+                  "gap": 5,
+                  "padding": [
+                    6,
+                    8
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "nskpA",
+                      "name": "Candidate Label",
+                      "fill": "$secondary-text",
+                      "content": "CANDIDATE",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 8,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "T5Ri5Z",
+                      "name": "Candidate Value",
+                      "fill": "$candidate",
+                      "content": "72%",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 9,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "o7XZ9",
+                  "name": "Stable Readout",
+                  "fill": "#FFFFFF0F",
+                  "cornerRadius": 12,
+                  "stroke": "#FFFFFF18",
+                  "strokeWidth": 1,
+                  "gap": 5,
+                  "padding": [
+                    6,
+                    8
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ikFBr",
+                      "name": "Stable Label",
+                      "fill": "$secondary-text",
+                      "content": "STABLE",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 8,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "ymvrX",
+                      "name": "Stable Value",
+                      "fill": "$signal",
+                      "content": "0.8s",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 9,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "B9JG8d",
+                  "name": "ROI Readout",
+                  "fill": "#FFFFFF0F",
+                  "cornerRadius": 12,
+                  "stroke": "#FFFFFF18",
+                  "strokeWidth": 1,
+                  "gap": 5,
+                  "padding": [
+                    6,
+                    8
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "FAmrS",
+                      "name": "ROI Label",
+                      "fill": "$secondary-text",
+                      "content": "ROI",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 8,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "EAhnb",
+                      "name": "ROI Value",
+                      "fill": "$primary-text",
+                      "content": "armed",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 9,
+                      "fontWeight": "700"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "rectangle",
+          "cornerRadius": 2,
+          "id": "OvlYF",
+          "x": 143,
+          "y": 828,
+          "name": "iPhone Home Indicator",
+          "fill": "#DCE7F2AA",
+          "width": 107,
+          "height": 4
+        },
+        {
+          "type": "frame",
+          "id": "ZCjqZ",
+          "x": 18,
+          "y": 154,
+          "name": "Scheme Selection Badge",
+          "width": 164,
+          "height": 34,
+          "fill": "#43D7B51A",
+          "cornerRadius": 17,
+          "stroke": "#43D7B577",
+          "strokeWidth": 1,
+          "effect": {
+            "type": "background_blur",
+            "radius": 14
+          },
+          "gap": 8,
+          "padding": [
+            7,
+            10
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "Qjjrb",
+              "name": "Selected Scheme Icon",
+              "width": 16,
+              "height": 16,
+              "icon": "check",
+              "library": "lucide",
+              "fill": "$signal"
+            },
+            {
+              "type": "text",
+              "id": "sezjB",
+              "name": "Selected Scheme Label",
+              "fill": "$signal",
+              "content": "SCHEME A SELECTED",
+              "fontFamily": "$font-mono",
+              "fontSize": 10,
+              "fontWeight": "700"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "f8cP9",
+      "x": 473,
+      "y": 0,
+      "name": "Scheme A Comparison Card",
+      "width": 360,
+      "height": 360,
+      "fill": "#05070A",
+      "cornerRadius": 24,
+      "stroke": "#FFFFFF20",
+      "strokeWidth": 1,
+      "effect": {
+        "type": "shadow",
+        "shadowType": "outer",
+        "color": "#00000066",
+        "offset": {
+          "x": 0,
+          "y": 16
+        },
+        "blur": 36
+      },
+      "layout": "vertical",
+      "gap": 18,
+      "padding": 24,
+      "children": [
+        {
+          "type": "frame",
+          "id": "oLgKk",
+          "name": "Comparison Card Header",
+          "width": "fill_container",
+          "gap": 12,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "l0O9I",
+              "name": "Scheme A Mark",
+              "width": 44,
+              "height": 44,
+              "fill": "#43D7B51F",
+              "cornerRadius": 22,
+              "stroke": "#43D7B588",
+              "strokeWidth": 1,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "Yucb0",
+                  "x": 11,
+                  "y": 11,
+                  "name": "Scheme A Mark Icon",
+                  "width": 22,
+                  "height": 22,
+                  "icon": "scan-search",
+                  "library": "lucide",
+                  "fill": "$signal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "OKKyY",
+              "name": "Comparison Titles",
+              "width": 244,
+              "layout": "vertical",
+              "gap": 3,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "NVysb",
+                  "name": "Comparison Title",
+                  "fill": "$primary-text",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Scheme A",
+                  "fontFamily": "$font-heading",
+                  "fontSize": 22,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "DlUlY",
+                  "name": "Comparison Subtitle",
+                  "fill": "$secondary-text",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Liquid Glass Precision / 玻璃精密仪器",
+                  "fontFamily": "$font-body",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "s6iN0L",
+          "name": "Concept Summary",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "children": [
+            {
+              "type": "frame",
+              "id": "MfHl3",
+              "name": "Tone Summary Row",
+              "width": "fill_container",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "a8ib6P",
+                  "name": "Tone Summary Label",
+                  "fill": "$signal",
+                  "textGrowth": "fixed-width",
+                  "width": 86,
+                  "content": "TONE",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 10,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "xuPnd",
+                  "name": "Tone Summary Text",
+                  "fill": "$primary-text",
+                  "textGrowth": "fixed-width",
+                  "width": 216,
+                  "content": "quiet, professional, iOS-native",
+                  "fontFamily": "$font-body",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "OfPQG",
+              "name": "Primary loop Summary Row",
+              "width": "fill_container",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "wa7Un",
+                  "name": "Primary loop Summary Label",
+                  "fill": "$signal",
+                  "textGrowth": "fixed-width",
+                  "width": 86,
+                  "content": "PRIMARY LOOP",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 10,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "het99",
+                  "name": "Primary loop Summary Text",
+                  "fill": "$primary-text",
+                  "textGrowth": "fixed-width",
+                  "width": 216,
+                  "content": "scan -> center -> zoom -> ROI confirm",
+                  "fontFamily": "$font-body",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "J8ApR",
+              "name": "Best for Summary Row",
+              "width": "fill_container",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "NehGX",
+                  "name": "Best for Summary Label",
+                  "fill": "$signal",
+                  "textGrowth": "fixed-width",
+                  "width": 86,
+                  "content": "BEST FOR",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 10,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "uaSYW",
+                  "name": "Best for Summary Text",
+                  "fill": "$primary-text",
+                  "textGrowth": "fixed-width",
+                  "width": 216,
+                  "content": "trust, accuracy, low visual noise",
+                  "fontFamily": "$font-body",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "oVFpq",
+          "name": "Comparison Score Row",
+          "width": "fill_container",
+          "gap": 10,
+          "children": [
+            {
+              "type": "frame",
+              "id": "ALLOJ",
+              "name": "Premium Score",
+              "width": "fill_container",
+              "fill": "#FFFFFF0E",
+              "cornerRadius": 14,
+              "stroke": "#FFFFFF1F",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 4,
+              "padding": [
+                10,
+                12
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Ah3eG",
+                  "name": "Premium Score Value",
+                  "fill": "$signal",
+                  "content": "5/5",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 15,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "text",
+                  "id": "oAS54",
+                  "name": "Premium Score Label",
+                  "fill": "$secondary-text",
+                  "content": "Premium",
+                  "fontFamily": "$font-body",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "RsFEI",
+              "name": "Clarity Score",
+              "width": "fill_container",
+              "fill": "#FFFFFF0E",
+              "cornerRadius": 14,
+              "stroke": "#FFFFFF1F",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 4,
+              "padding": [
+                10,
+                12
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "uSFTM",
+                  "name": "Clarity Score Value",
+                  "fill": "$candidate",
+                  "content": "4/5",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 15,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "text",
+                  "id": "AGQjJ",
+                  "name": "Clarity Score Label",
+                  "fill": "$secondary-text",
+                  "content": "Clarity",
+                  "fontFamily": "$font-body",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "q35KW9",
+              "name": "Cost Score",
+              "width": "fill_container",
+              "fill": "#FFFFFF0E",
+              "cornerRadius": 14,
+              "stroke": "#FFFFFF1F",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 4,
+              "padding": [
+                10,
+                12
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "beVsL",
+                  "name": "Cost Score Value",
+                  "fill": "$secondary-text",
+                  "content": "3/5",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 15,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "text",
+                  "id": "jpmUy",
+                  "name": "Cost Score Label",
+                  "fill": "$secondary-text",
+                  "content": "Cost",
+                  "fontFamily": "$font-body",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "nlCcR",
+          "name": "Selected Concept Button",
+          "width": "fill_container",
+          "fill": "#43D7B526",
+          "cornerRadius": 18,
+          "stroke": "#43D7B588",
+          "strokeWidth": 1,
+          "gap": 8,
+          "padding": [
+            12,
+            16
+          ],
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "GoJEO",
+              "name": "Selected Concept Check",
+              "width": 17,
+              "height": 17,
+              "icon": "check",
+              "library": "lucide",
+              "fill": "$signal"
+            },
+            {
+              "type": "text",
+              "id": "kW5pK",
+              "name": "Selected Concept Label",
+              "fill": "$signal",
+              "content": "SELECTED FOR COMPARISON",
+              "fontFamily": "$font-mono",
+              "fontSize": 11,
+              "fontWeight": "800"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variables": {
+    "base": {
+      "type": "color",
+      "value": "#05070A"
+    },
+    "candidate": {
+      "type": "color",
+      "value": "#F2C94C"
+    },
+    "confirm": {
+      "type": "color",
+      "value": "#FF4D4D"
+    },
+    "dim-line": {
+      "type": "color",
+      "value": "#DCE7F233"
+    },
+    "font-body": {
+      "type": "string",
+      "value": "Inter"
+    },
+    "font-heading": {
+      "type": "string",
+      "value": "Geist"
+    },
+    "font-mono": {
+      "type": "string",
+      "value": "Geist Mono"
+    },
+    "glass": {
+      "type": "color",
+      "value": "#FFFFFF1A"
+    },
+    "glass-strong": {
+      "type": "color",
+      "value": "#FFFFFF26"
+    },
+    "primary-text": {
+      "type": "color",
+      "value": "#DCE7F2"
+    },
+    "secondary-text": {
+      "type": "color",
+      "value": "#7D8A99"
+    },
+    "signal": {
+      "type": "color",
+      "value": "#43D7B5"
+    }
+  }
+}
