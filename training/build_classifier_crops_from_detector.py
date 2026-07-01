@@ -48,6 +48,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST_PATH)
     parser.add_argument("--negative-per-image", type=int, default=3)
     parser.add_argument("--padding-ratio", type=float, default=2.2)
+    parser.add_argument(
+        "--max-source-pixels",
+        type=int,
+        default=120_000_000,
+        help="Skip source images larger than this many pixels to avoid slow/decompression-bomb inputs.",
+    )
     parser.add_argument("--seed", type=int, default=20260531)
     parser.add_argument(
         "--splits",
@@ -189,6 +195,7 @@ def main() -> None:
 
     rows: list[dict[str, Any]] = []
     counts = {"mosquito": 0, "hardnegative": 0}
+    skipped_large_images = 0
 
     for split in splits:
         images, boxes_by_image = load_coco(args.dataset_dir, split)
@@ -196,6 +203,9 @@ def main() -> None:
             image_id = int(image_info["id"])
             image_path = args.dataset_dir / split / image_info["file_name"]
             positive_boxes = boxes_by_image.get(image_id, [])
+            if int(image_info["width"]) * int(image_info["height"]) > args.max_source_pixels:
+                skipped_large_images += 1
+                continue
             with Image.open(image_path) as image:
                 rgb = image.convert("RGB")
                 for box_index, box in enumerate(positive_boxes):
@@ -258,6 +268,8 @@ def main() -> None:
         "splits": splits,
         "image_size": IMAGE_SIZE,
         "counts": counts,
+        "skipped_large_images": skipped_large_images,
+        "max_source_pixels": args.max_source_pixels,
         "total": len(rows),
     }
     summary_path = args.manifest.parent / "summary.json"

@@ -1,0 +1,75 @@
+__include__: [
+  '/Users/nsaviour/AgentTeam/workplace/codeProject/ml-frameworks/D-FINE/configs/dfine/custom/dfine_hgnetv2_n_custom.yml',
+]
+
+output_dir: ./artifacts/dfine_tiny_candidate_v3_sliced
+print_freq: 50
+checkpoint_freq: 1
+eval_spatial_size: [416, 416]
+
+num_classes: 1
+remap_mscoco_category: False
+use_amp: False
+use_ema: True
+sync_bn: False
+
+epochs: 3
+clip_max_norm: 0.1
+
+HGNetv2:
+  pretrained: False
+
+optimizer:
+  lr: 0.00004
+  params:
+    -
+      params: '^(?=.*backbone)(?!.*norm|bn).*$'
+      lr: 0.00001
+    -
+      params: '^(?=.*backbone)(?=.*norm|bn).*$'
+      lr: 0.00001
+      weight_decay: 0.
+    -
+      params: '^(?=.*(?:encoder|decoder))(?=.*(?:norm|bn|bias)).*$'
+      weight_decay: 0.
+
+lr_scheduler:
+  milestones: [2]
+  gamma: 0.3
+
+lr_warmup_scheduler:
+  warmup_duration: 80
+
+train_dataloader:
+  total_batch_size: 16
+  num_workers: 0
+  dataset:
+    img_folder: /Users/nsaviour/AgentTeam/workplace/codeProject/Crash-AI-Tech/Mosquito-finder/data/processed/synthetic_phone_candidate_v3_sliced_coco/train2017
+    ann_file: /Users/nsaviour/AgentTeam/workplace/codeProject/Crash-AI-Tech/Mosquito-finder/data/processed/synthetic_phone_candidate_v3_sliced_coco/annotations/instances_train2017.json
+    transforms:
+      policy:
+        epoch: 2
+      ops:
+        - {type: RandomPhotometricDistort, p: 0.42}
+        - {type: RandomHorizontalFlip}
+        - {type: Resize, size: [416, 416]}
+        - {type: SanitizeBoundingBoxes, min_size: 1}
+        - {type: ConvertPILImage, dtype: 'float32', scale: True}
+        - {type: ConvertBoxes, fmt: 'cxcywh', normalize: True}
+  collate_fn:
+    base_size: 416
+    base_size_repeat: ~
+    stop_epoch: 2
+    ema_restart_decay: 0.9999
+
+val_dataloader:
+  total_batch_size: 16
+  num_workers: 0
+  dataset:
+    img_folder: /Users/nsaviour/AgentTeam/workplace/codeProject/Crash-AI-Tech/Mosquito-finder/data/processed/synthetic_phone_candidate_v3_sliced_coco/val2017
+    ann_file: /Users/nsaviour/AgentTeam/workplace/codeProject/Crash-AI-Tech/Mosquito-finder/data/processed/synthetic_phone_candidate_v3_sliced_coco/annotations/instances_val2017.json
+    transforms:
+      ops:
+        - {type: Resize, size: [416, 416]}
+        - {type: ConvertPILImage, dtype: 'float32', scale: True}
+        - {type: ConvertBoxes, fmt: 'cxcywh', normalize: True}

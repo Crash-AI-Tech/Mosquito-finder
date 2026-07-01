@@ -155,6 +155,42 @@ class CameraController: NSObject, ObservableObject {
             print("对焦锁定失败: \(error)")
         }
     }
+
+    /// 将自动对焦和曝光移动到候选区域中心。坐标为 0...1 的相机画面坐标。
+    func focusAndExpose(at normalizedPoint: CGPoint) {
+        guard let device = captureDevice else { return }
+
+        let point = CGPoint(
+            x: max(0.02, min(0.98, normalizedPoint.x)),
+            y: max(0.02, min(0.98, normalizedPoint.y))
+        )
+
+        do {
+            try device.lockForConfiguration()
+
+            if device.isFocusPointOfInterestSupported {
+                device.focusPointOfInterest = point
+                if device.isFocusModeSupported(.continuousAutoFocus) {
+                    device.focusMode = .continuousAutoFocus
+                } else if device.isFocusModeSupported(.autoFocus) {
+                    device.focusMode = .autoFocus
+                }
+            }
+
+            if device.isExposurePointOfInterestSupported {
+                device.exposurePointOfInterest = point
+                if device.isExposureModeSupported(.continuousAutoExposure) {
+                    device.exposureMode = .continuousAutoExposure
+                } else if device.isExposureModeSupported(.autoExpose) {
+                    device.exposureMode = .autoExpose
+                }
+            }
+
+            device.unlockForConfiguration()
+        } catch {
+            print("候选区域对焦/曝光失败: \(error)")
+        }
+    }
     
     /// 解锁对焦（恢复自动对焦）
     func unlockFocus() {        guard let device = captureDevice else { return }

@@ -166,7 +166,8 @@ class Stage1Detector: ObservableObject {
                         let size: CGFloat = CGFloat(gridSize) * 0.7
                         cachedRegions.append(SuspectRegion(
                             boundingBox: CGRect(x: centerX - size/2, y: centerY - size/2, width: size, height: size),
-                            confidence: Float(bgMean - brightnessValues[0]) * 3.0 // 提升置信度权重
+                            confidence: Float(bgMean - brightnessValues[0]) * 3.0, // 提升置信度权重
+                            source: .darkSpot
                         ))
                         processedCenters.append((gridX, gridY))
                     }
@@ -300,7 +301,7 @@ class Stage1Detector: ObservableObject {
             )
 
             guard rect.width >= 4, rect.height >= 4 else { continue }
-            detections.append(SuspectRegion(boundingBox: rect, confidence: confidence))
+            detections.append(SuspectRegion(boundingBox: rect, confidence: confidence, source: .detector))
         }
 
         return detections
@@ -341,7 +342,7 @@ class Stage1Detector: ObservableObject {
             )
 
             guard rect.width >= 4, rect.height >= 4 else { continue }
-            detections.append(SuspectRegion(boundingBox: rect, confidence: confidence))
+            detections.append(SuspectRegion(boundingBox: rect, confidence: confidence, source: .detector))
         }
 
         return nonMaximumSuppressed(detections, iouThreshold: detectorNmsIouThreshold)

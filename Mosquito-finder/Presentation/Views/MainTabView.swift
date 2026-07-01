@@ -638,11 +638,11 @@ struct SettingsView: View {
     private func profileSubtitle(for mode: RuntimeModelMode) -> LocalizedStringKey {
         switch mode {
         case .detectorDfine:
-            return "D-FINE searches widely; ROI recheck confirms close-up crops."
+            return "D-FINE helps propose candidates; crop confirmation remains mandatory."
         case .detectorYolox:
-            return "YOLOX searches widely; NMS and ROI recheck reduce false alarms."
+            return "YOLOX helps propose candidates; crop confirmation remains mandatory."
         case .classic:
-            return "Dark-spot scanner creates candidates; CNN confirms ROI crops."
+            return "Image processing proposes candidates; crop confirmation remains mandatory."
         }
     }
 
@@ -672,31 +672,29 @@ struct SettingsView: View {
 
     private func stage1PipelineName(for mode: RuntimeModelMode) -> LocalizedStringKey {
         switch mode {
-        case .detectorDfine: return "D-FINE detector"
-        case .detectorYolox: return "YOLOX detector"
-        case .classic: return "Dark-spot scanner"
+        case .detectorDfine: return "D-FINE + candidate gate"
+        case .detectorYolox: return "YOLOX + candidate gate"
+        case .classic: return "Heuristics + candidate gate"
         }
     }
 
     private func stage1PipelineDetail(for mode: RuntimeModelMode) -> LocalizedStringKey {
         switch mode {
         case .detectorDfine:
-            return "Detector boxes become tracked candidates."
+            return "Detector boxes are fused with dark-spot/blob candidates, then reranked and stabilized."
         case .detectorYolox:
-            return "Detector boxes are filtered with NMS before tracking."
+            return "Detector boxes are fused with dark-spot/blob candidates, then reranked and stabilized."
         case .classic:
-            return "Local contrast and smooth-background gates generate candidates."
+            return "Dark spots, blobs, and local contrast generate candidates, then the gate model reranks them."
         }
     }
 
     private func stage2PipelineName(for mode: RuntimeModelMode) -> LocalizedStringKey {
-        mode.isDetectorMode ? "High-resolution ROI recheck" : "RGB CNN classifier"
+        "High-resolution crop confirmation"
     }
 
     private func stage2PipelineDetail(for mode: RuntimeModelMode) -> LocalizedStringKey {
-        mode.isDetectorMode
-            ? "The tracked candidate is enlarged, cropped, and passed through the detector again."
-            : "The cropped target ROI is classified by MosquitoClassifier."
+        "The app focuses/exposes near the stable candidate and classifies an enlarged ROI crop."
     }
 
     private func percentText(_ value: Double) -> String {

@@ -9,7 +9,7 @@ from typing import Any
 
 import coremltools as ct
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -50,6 +50,8 @@ def build_parser() -> argparse.ArgumentParser:
         default="0.05,0.10,0.20,0.30,0.35,0.40,0.45,0.50,0.55,0.60,0.65,0.70,0.75,0.80",
     )
     parser.add_argument("--num-images", type=int, default=0)
+    parser.add_argument("--visualize-dir", type=Path)
+    parser.add_argument("--visualize-limit", type=int, default=48)
     return parser
 
 
@@ -83,6 +85,21 @@ def nms(detections: list[Detection], iou_threshold: float, max_boxes: int) -> li
         keep = box_iou(current.box, boxes) < iou_threshold
         remaining = [item for item, should_keep in zip(remaining, keep) if bool(should_keep)]
     return selected
+
+
+def draw_overlay(image: Image.Image, gt_boxes: np.ndarray, detections: list[Detection], output_path: Path) -> None:
+    canvas = image.copy()
+    draw = ImageDraw.Draw(canvas)
+    for gt_box in gt_boxes:
+        x1, y1, x2, y2 = [float(value) for value in gt_box]
+        draw.rectangle([x1, y1, x2, y2], outline="lime", width=2)
+        draw.text((x1, max(0.0, y1 - 14.0)), "gt", fill="lime")
+    for detection in detections[:8]:
+        x1, y1, x2, y2 = [float(value) for value in detection.box]
+        draw.rectangle([x1, y1, x2, y2], outline="magenta", width=1)
+        draw.text((x1, min(float(image.height - 12), y2 + 2.0)), f"dfine {detection.score:.2f}", fill="magenta")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    canvas.save(output_path, quality=92)
 
 
 def parse_outputs(
@@ -183,6 +200,7 @@ def main() -> int:
 
     model = ct.models.MLModel(str(args.model))
     detections: list[Detection] = []
+    visualized = 0
     for image_meta in images:
         image_id = int(image_meta["id"])
         image_path = args.image_dir / str(image_meta["file_name"])
@@ -199,7 +217,13 @@ def main() -> int:
             args.min_box_size,
             args.max_area_ratio,
         )
-        detections.extend(nms(image_detections, args.nms, args.max_boxes))
+        selected_detections = nms(image_detections, args.nms, args.max_boxes)
+        detections.extend(selected_detections)
+        if args.visualize_dir and visualized < args.visualize_limit:
+            gt_boxes = gt_by_image.get(image_id, np.zeros((0, 4), dtype=np.float32))
+            if len(gt_boxes) > 0 or selected_detections:
+                draw_overlay(image, gt_boxes, selected_detections, args.visualize_dir / str(image_meta["file_name"]))
+                visualized += 1
 
     thresholds = [float(value) for value in args.thresholds.split(",") if value.strip()]
     metrics = [evaluate_at_threshold(detections, gt_by_image, threshold, args.iou_threshold) for threshold in thresholds]

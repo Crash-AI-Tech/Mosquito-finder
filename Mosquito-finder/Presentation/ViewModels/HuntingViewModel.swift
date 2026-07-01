@@ -58,6 +58,7 @@ class HuntingViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var sessionTimer: Timer?
     private var lastHapticTime = Date.distantPast
+    private var lastFocusAssistTime = Date.distantPast
     
     // MARK: - Init
     
@@ -274,7 +275,12 @@ class HuntingViewModel: ObservableObject {
 
         targetCoordinator.$guidanceTarget
             .receive(on: DispatchQueue.main)
-            .assign(to: &$guidanceTarget)
+            .sink { [weak self] target in
+                guard let self = self else { return }
+                self.guidanceTarget = target
+                self.assistFocusIfNeeded(target)
+            }
+            .store(in: &cancellables)
 
         targetCoordinator.$diagnostics
             .receive(on: DispatchQueue.main)
@@ -311,6 +317,27 @@ class HuntingViewModel: ObservableObject {
                 isApproaching: self.motionDetector.isApproaching
             )
         }
+    }
+
+    private func assistFocusIfNeeded(_ target: TrackedTarget?) {
+        guard let target,
+              target.isStable,
+              guidanceState == .centerCandidate || guidanceState == .zoomIn || guidanceState == .confirming else {
+            return
+        }
+
+        let now = Date()
+        guard now.timeIntervalSince(lastFocusAssistTime) > 1.2 else { return }
+        lastFocusAssistTime = now
+
+        let width = max(1, nativeImageSize.width)
+        let height = max(1, nativeImageSize.height)
+        cameraController.focusAndExpose(
+            at: CGPoint(
+                x: target.center.x / width,
+                y: target.center.y / height
+            )
+        )
     }
     
     private func startSessionTimer() {

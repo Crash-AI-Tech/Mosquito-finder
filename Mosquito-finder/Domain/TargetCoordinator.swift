@@ -28,7 +28,7 @@ class TargetCoordinator: ObservableObject {
     
     // MARK: - Dependencies
     
-    let stage1Detector: Stage1Detector
+    let candidateSearchEngine: CandidateSearchEngine
     let objectTracker: ObjectTracker
     let stage2Classifier: Stage2Classifier
     var triggerEvaluator: TriggerEvaluator
@@ -46,11 +46,18 @@ class TargetCoordinator: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var lastStage2Time: Date?
     private var stage2Cooldown: TimeInterval = 0.5  // Stage 2 最小间隔
+    private var lockedGuidanceTargetID: UUID?
+    private var guidanceLockExpiresAt = Date.distantPast
+    private let guidanceLockDuration: TimeInterval = 1.55
+    private let guidanceSwitchScoreMargin = 0.32
+    private let guidanceWarmupFrames = 2
+    private var suppressedGuidanceRegions: [SuppressedGuidanceRegion] = []
+    private let negativeSuppressionDuration: TimeInterval = 3.0
     
     // MARK: - Init
     
     init() {
-        self.stage1Detector = Stage1Detector()
+        self.candidateSearchEngine = CandidateSearchEngine()
         self.objectTracker = ObjectTracker()
         self.stage2Classifier = Stage2Classifier()
         self.triggerEvaluator = TriggerEvaluator(settings: RuntimeDetectionSettings.current)
@@ -67,8 +74,8 @@ class TargetCoordinator: ObservableObject {
         applyRuntimeSettings()
         let stage1StartTime = Date()
 
-        // Stage 1: 雷达扫描 - 检测暗点
-        let detections = stage1Detector.detectDarkSpots(pixelBuffer: pixelBuffer)
+        // Stage 1: candidate search only. This does not mean "mosquito found".
+        let detections = candidateSearchEngine.search(pixelBuffer: pixelBuffer)
 
         let stage1ProcessingTime = Date().timeIntervalSince(stage1StartTime)
         let frameSize = CGSize(
@@ -156,6 +163,11 @@ class TargetCoordinator: ObservableObject {
             if self.activeStage2Target?.id == id {
                 self.activeStage2Target = nil
             }
+            if self.lockedGuidanceTargetID == id {
+                self.lockedGuidanceTargetID = nil
+                self.guidanceLockExpiresAt = .distantPast
+                self.guidanceTarget = nil
+            }
             self.trackedTargets = self.objectTracker.trackedTargets
             if self.isStage2Active {
                 self.isStage2Active = false
@@ -177,22 +189,29 @@ class TargetCoordinator: ObservableObject {
             self.guidanceState = .scanning
             self.guidanceTarget = nil
         }
+
+        lockedGuidanceTargetID = nil
+        guidanceLockExpiresAt = .distantPast
+        suppressedGuidanceRegions = []
     }
     
     // MARK: - Private Methods
 
     private func applyRuntimeSettings() {
         let settings = RuntimeDetectionSettings.current
-        stage1Detector.modelMode = settings.modelMode
-        stage1Detector.maxDetections = settings.maxStage1Detections
-        // Stage 1 is intentionally high-recall. Detector modes are confirmed by a
-        // separate high-resolution ROI pass, so low-score boxes are kept for guidance.
-        stage1Detector.detectorCandidateThreshold = settings.modelMode.isDetectorMode
+        candidateSearchEngine.modelMode = settings.modelMode
+        candidateSearchEngine.maxCandidates = settings.maxStage1Detections
+        // Stage 1 is intentionally high-recall. It emits candidate regions only;
+        // high-resolution Stage 2 crop classification makes the final decision.
+        candidateSearchEngine.detectorCandidateThreshold = settings.modelMode.isDetectorMode
             ? min(0.24, max(0.08, settings.stage2ConfidenceThreshold * 0.42))
             : 0.35
-        stage1Detector.detectorNmsIouThreshold = settings.detectorNmsIouThreshold
-        stage1Detector.localContrastThreshold = settings.stage1LocalContrastThreshold
-        stage1Detector.backgroundVarianceThreshold = settings.stage1BackgroundVarianceThreshold
+        candidateSearchEngine.detectorNmsIouThreshold = settings.detectorNmsIouThreshold
+        candidateSearchEngine.localContrastThreshold = settings.stage1LocalContrastThreshold
+        candidateSearchEngine.backgroundVarianceThreshold = settings.stage1BackgroundVarianceThreshold
+        candidateSearchEngine.frameInterval = settings.modelMode.isDetectorMode ? 0.16 : 0.11
+        candidateSearchEngine.candidateClassifierEnabled = true
+        candidateSearchEngine.candidateClassifierWeight = settings.modelMode.isDetectorMode ? 0.22 : 0.28
         objectTracker.requiredStableFrames = settings.stableFrameCount
         objectTracker.useVisionTracking = !settings.modelMode.isDetectorMode
         stage2Classifier.apply(settings: settings)
@@ -286,6 +305,17 @@ class TargetCoordinator: ObservableObject {
             
             // 如果不是蚊子，延迟移除
             if !result.isMosquito {
+                let suppressionRect = self.expandedConfirmationRegion(
+                    around: target.boundingBox,
+                    in: frameSize,
+                    mode: settings.modelMode
+                )
+                self.suppressedGuidanceRegions.append(
+                    SuppressedGuidanceRegion(
+                        rect: suppressionRect,
+                        expiresAt: Date().addingTimeInterval(self.negativeSuppressionDuration)
+                    )
+                )
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                     self.dismissTarget(target.id)
                 }
@@ -301,7 +331,7 @@ class TargetCoordinator: ObservableObject {
         zoomFactor: CGFloat,
         isApproaching: Bool
     ) {
-        let candidate = bestGuidanceTarget()
+        let candidate = bestGuidanceTarget(frameSize: frameSize)
         let nextState: GuidanceState
 
         if isStage2Active {
@@ -333,15 +363,71 @@ class TargetCoordinator: ObservableObject {
         }
     }
 
-    private func bestGuidanceTarget() -> TrackedTarget? {
-        objectTracker.trackedTargets
-            .sorted {
-                if $0.isStable != $1.isStable {
-                    return $0.isStable && !$1.isStable
-                }
-                return $0.trackingConfidence > $1.trackingConfidence
+    private func bestGuidanceTarget(frameSize: CGSize) -> TrackedTarget? {
+        let now = Date()
+        pruneSuppressedGuidanceRegions(now: now)
+
+        let candidates = objectTracker.trackedTargets.filter {
+            $0.state != .dismissed
+                && $0.visibility > 0.15
+                && !$0.isStale
+                && $0.detectedFrameCount >= guidanceWarmupFrames
+                && !isSuppressed($0.boundingBox, now: now)
+        }
+
+        guard !candidates.isEmpty else {
+            lockedGuidanceTargetID = nil
+            guidanceLockExpiresAt = .distantPast
+            return nil
+        }
+
+        let ranked = candidates.sorted {
+            guidanceScore(for: $0, frameSize: frameSize) > guidanceScore(for: $1, frameSize: frameSize)
+        }
+        guard let best = ranked.first else { return nil }
+
+        if let lockedID = lockedGuidanceTargetID,
+           let lockedTarget = candidates.first(where: { $0.id == lockedID }) {
+            let lockedScore = guidanceScore(for: lockedTarget, frameSize: frameSize)
+            let bestScore = guidanceScore(for: best, frameSize: frameSize)
+
+            if now < guidanceLockExpiresAt || bestScore < lockedScore + guidanceSwitchScoreMargin {
+                guidanceLockExpiresAt = now.addingTimeInterval(guidanceLockDuration)
+                return lockedTarget
             }
-            .first
+        }
+
+        lockedGuidanceTargetID = best.id
+        guidanceLockExpiresAt = now.addingTimeInterval(guidanceLockDuration)
+        return best
+    }
+
+    private func guidanceScore(for target: TrackedTarget, frameSize: CGSize) -> Double {
+        let frameCenter = CGPoint(x: frameSize.width / 2, y: frameSize.height / 2)
+        let centerDistance = hypot(target.center.x - frameCenter.x, target.center.y - frameCenter.y)
+        let centerRange = max(1, min(frameSize.width, frameSize.height) * 0.72)
+        let centerScore = Double(1.0 - min(1.0, centerDistance / centerRange))
+        let stableProgress = min(1.0, Double(target.detectedFrameCount) / Double(max(1, target.requiredStableFrames + 1)))
+        let freshness = max(0.0, 1.0 - Double(target.framesMissed) / 5.0)
+        let confidence = min(1.0, max(0.0, Double(target.trackingConfidence)))
+        let lockBonus = target.id == lockedGuidanceTargetID ? 0.35 : 0.0
+
+        return confidence * 0.24
+            + centerScore * 0.24
+            + stableProgress * 0.36
+            + freshness * 0.16
+            + lockBonus
+    }
+
+    private func pruneSuppressedGuidanceRegions(now: Date) {
+        suppressedGuidanceRegions.removeAll { $0.expiresAt <= now }
+    }
+
+    private func isSuppressed(_ rect: CGRect, now: Date) -> Bool {
+        pruneSuppressedGuidanceRegions(now: now)
+        return suppressedGuidanceRegions.contains {
+            $0.rect.intersects(rect) || $0.rect.contains(CGPoint(x: rect.midX, y: rect.midY))
+        }
     }
 
     private func expandedConfirmationRegion(
@@ -349,8 +435,8 @@ class TargetCoordinator: ObservableObject {
         in frameSize: CGSize,
         mode: RuntimeModelMode
     ) -> CGRect {
-        let multiplier: CGFloat = mode.isDetectorMode ? 3.2 : 2.2
-        let minSide: CGFloat = mode.isDetectorMode ? 192 : 128
+        let multiplier: CGFloat = mode.isDetectorMode ? 3.8 : 2.8
+        let minSide: CGFloat = mode.isDetectorMode ? 224 : 160
         let side = max(max(box.width, box.height) * multiplier, minSide)
         let centered = CGRect(
             x: box.midX - side / 2,
@@ -368,4 +454,9 @@ class TargetCoordinator: ObservableObject {
         let y = min(max(rect.origin.y, 0), max(0, size.height - height))
         return CGRect(x: x, y: y, width: width, height: height)
     }
+}
+
+private struct SuppressedGuidanceRegion {
+    let rect: CGRect
+    let expiresAt: Date
 }

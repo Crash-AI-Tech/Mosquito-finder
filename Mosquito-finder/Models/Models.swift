@@ -118,6 +118,7 @@ enum ClassicDetectionPreset: String, CaseIterable, Identifiable {
 
 struct RuntimeDetectionSettings {
     private static let dfineFullFrameSettingsVersion = 2
+    private static let detectorTwoStageSettingsVersion = 1
 
     var modelMode: RuntimeModelMode
     var stage2ConfidenceThreshold: Float
@@ -164,12 +165,12 @@ struct RuntimeDetectionSettings {
 
     static let yoloxHighPrecision = RuntimeDetectionSettings(
         modelMode: .detectorYolox,
-        stage2ConfidenceThreshold: 0.72,
+        stage2ConfidenceThreshold: 0.95,
         minZoomFactor: 1.6,
         centerRegionRatio: 0.34,
         minTargetSize: 12,
-        stableFrameCount: 4,
-        stage2Cooldown: 0.35,
+        stableFrameCount: 5,
+        stage2Cooldown: 0.6,
         maxStage1Detections: 10,
         stage1LocalContrastThreshold: 0.06,
         stage1BackgroundVarianceThreshold: 0.018,
@@ -178,12 +179,12 @@ struct RuntimeDetectionSettings {
 
     static let dfineHighPrecision = RuntimeDetectionSettings(
         modelMode: .detectorDfine,
-        stage2ConfidenceThreshold: 0.56,
+        stage2ConfidenceThreshold: 0.95,
         minZoomFactor: 1.5,
         centerRegionRatio: 0.38,
         minTargetSize: 10,
-        stableFrameCount: 3,
-        stage2Cooldown: 0.35,
+        stableFrameCount: 5,
+        stage2Cooldown: 0.6,
         maxStage1Detections: 10,
         stage1LocalContrastThreshold: 0.06,
         stage1BackgroundVarianceThreshold: 0.018,
@@ -235,6 +236,12 @@ struct RuntimeDetectionSettings {
            defaults.integer(forKey: "dfineFullFrameSettingsVersion") < dfineFullFrameSettingsVersion {
             requestedMode = .detectorDfine
             defaults.set(requestedMode.rawValue, forKey: "detectionModelMode")
+        }
+
+        if requestedMode.isDetectorMode,
+           defaults.integer(forKey: "detectorTwoStageSettingsVersion") < detectorTwoStageSettingsVersion {
+            defaults.set(detectorTwoStageSettingsVersion, forKey: "detectorTwoStageSettingsVersion")
+            applyPreset(requestedMode)
         }
 
         let mode = requestedMode.isBundled && requestedMode.isProductionReady ? requestedMode : RuntimeModelMode.preferredDefault
@@ -299,6 +306,9 @@ struct RuntimeDetectionSettings {
         if preset.modelMode == .detectorDfine {
             defaults.set(dfineFullFrameSettingsVersion, forKey: "dfineFullFrameSettingsVersion")
         }
+        if preset.modelMode.isDetectorMode {
+            defaults.set(detectorTwoStageSettingsVersion, forKey: "detectorTwoStageSettingsVersion")
+        }
     }
 }
 
@@ -314,17 +324,47 @@ private extension UserDefaults {
 
 // MARK: - Stage 1 Output
 
+enum CandidateSource: String {
+    case detector
+    case darkSpot
+    case blob
+    case localContrast
+    case motion
+    case fused
+
+    var weight: Float {
+        switch self {
+        case .detector: return 1.0
+        case .darkSpot: return 0.72
+        case .blob: return 0.66
+        case .localContrast: return 0.58
+        case .motion: return 0.62
+        case .fused: return 0.90
+        }
+    }
+}
+
 /// 可疑区域 - Stage 1 Radar 检测输出
 struct SuspectRegion: Identifiable, Equatable {
     let id = UUID()
     var boundingBox: CGRect
     var confidence: Float
     var timestamp: Date
+    var source: CandidateSource
+    var stability: Float
     
-    init(boundingBox: CGRect, confidence: Float = 0.5, timestamp: Date = Date()) {
+    init(
+        boundingBox: CGRect,
+        confidence: Float = 0.5,
+        timestamp: Date = Date(),
+        source: CandidateSource = .darkSpot,
+        stability: Float = 0
+    ) {
         self.boundingBox = boundingBox
         self.confidence = confidence
         self.timestamp = timestamp
+        self.source = source
+        self.stability = stability
     }
     
     /// 区域中心点
@@ -489,11 +529,11 @@ enum GuidanceState: Equatable {
     var localizedTitleKey: LocalizedStringKey {
         switch self {
         case .scanning:
-            return "Slowly scan bright walls"
+            return "Search for candidate areas"
         case .holdStill:
             return "Hold the phone steady"
         case .candidateFound:
-            return "Possible mosquito found"
+            return "Candidate area found"
         case .centerCandidate:
             return "Move the target to center"
         case .zoomIn:
@@ -510,21 +550,21 @@ enum GuidanceState: Equatable {
     var localizedDetailKey: LocalizedStringKey {
         switch self {
         case .scanning:
-            return "Pan slowly. The app is searching for tiny dark shapes."
+            return "Pan slowly. The app is looking for tiny motion, dark spots, and texture anomalies."
         case .holdStill:
             return "Motion blur lowers accuracy. Pause for a moment."
         case .candidateFound:
-            return "Keep this area in view while the app checks stability."
+            return "Keep this area in view while the app checks whether it is stable enough to inspect."
         case .centerCandidate:
             return "Follow the arrow and place the candidate inside the ring."
         case .zoomIn:
             return "Use 2x or move closer before final recognition."
         case .confirming:
-            return "The app is rechecking a high-resolution crop."
+            return "The app is checking a high-resolution crop before making a final call."
         case .confirmed:
             return "The target has passed two-stage recognition."
         case .noSignal:
-            return "Try a lighter, smoother background or turn on the flashlight."
+            return "Move slowly across likely hiding places, or turn on the flashlight."
         }
     }
 

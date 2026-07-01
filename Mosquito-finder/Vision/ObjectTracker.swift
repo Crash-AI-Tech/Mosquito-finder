@@ -70,7 +70,7 @@ class ObjectTracker: ObservableObject {
         var matchedTargetIDs = Set<UUID>()
         
         for (index, detection) in detections.enumerated() {
-            if let matchedTarget = findMatchingTarget(for: detection) {
+            if let matchedTarget = findMatchingTarget(for: detection, excluding: matchedTargetIDs) {
                 // 更新匹配的目标
                 updateTarget(matchedTarget.id, with: detection)
                 matchedDetectionIndices.insert(index)
@@ -202,14 +202,31 @@ class ObjectTracker: ObservableObject {
         }
     }
     
-    private func findMatchingTarget(for detection: SuspectRegion) -> TrackedTarget? {
-        for target in trackedTargets {
+    private func findMatchingTarget(for detection: SuspectRegion, excluding matchedTargetIDs: Set<UUID>) -> TrackedTarget? {
+        var bestTarget: TrackedTarget?
+        var bestScore: CGFloat = 0
+
+        for target in trackedTargets where !matchedTargetIDs.contains(target.id) {
             let iou = calculateIOU(detection.boundingBox, target.boundingBox)
-            if iou > iouThreshold {
-                return target
+            let centerDistance = hypot(
+                detection.center.x - target.center.x,
+                detection.center.y - target.center.y
+            )
+            let maxSide = max(
+                max(detection.boundingBox.width, detection.boundingBox.height),
+                max(target.boundingBox.width, target.boundingBox.height)
+            )
+            let centerThreshold = max(24, maxSide * 1.8)
+            let centerScore = max(0, 1 - centerDistance / centerThreshold)
+            let score = CGFloat(iou) * 1.7 + centerScore * 0.75
+
+            if (iou > iouThreshold || centerDistance <= centerThreshold) && score > bestScore {
+                bestScore = score
+                bestTarget = target
             }
         }
-        return nil
+
+        return bestTarget
     }
     
     private func updateTarget(_ id: UUID, with detection: SuspectRegion) {
@@ -227,7 +244,7 @@ class ObjectTracker: ObservableObject {
             trackedTargets[index].boundingBox = newBox
             trackedTargets[index].trackingConfidence = max(
                 trackedTargets[index].trackingConfidence * 0.6,
-                detection.confidence
+                detection.confidence * (0.70 + detection.stability * 0.30)
             )
             trackedTargets[index].lastUpdated = Date()
             trackedTargets[index].framesSinceLastUpdate = 0
@@ -252,7 +269,7 @@ class ObjectTracker: ObservableObject {
     private func addNewTarget(from detection: SuspectRegion, in pixelBuffer: CVPixelBuffer, imageSize: CGSize) {
         let newTarget = TrackedTarget(
             boundingBox: detection.boundingBox,
-            trackingConfidence: detection.confidence,
+            trackingConfidence: detection.confidence * (0.55 + detection.stability * 0.45),
             state: .suspect,
             detectedFrameCount: 1,
             requiredStableFrames: requiredStableFrames

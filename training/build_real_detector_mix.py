@@ -21,6 +21,18 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--train-source", action="append", required=True, help="name=dataset_dir, repeatable.")
     parser.add_argument("--val-source", action="append", required=True, help="name=dataset_dir, repeatable.")
+    parser.add_argument(
+        "--train-negative-source",
+        action="append",
+        default=[],
+        help="name=dataset_dir with COCO images but no mosquito boxes, repeatable.",
+    )
+    parser.add_argument(
+        "--val-negative-source",
+        action="append",
+        default=[],
+        help="name=dataset_dir with COCO images but no mosquito boxes, repeatable.",
+    )
     parser.add_argument("--min-pseudo-score", type=float, default=0.0)
     parser.add_argument(
         "--min-box-size",
@@ -143,6 +155,7 @@ def normalized_annotation(
 
 def merge_sources(
     sources: list[tuple[str, Path]],
+    negative_sources: list[tuple[str, Path]],
     output_dir: Path,
     output_split: str,
     input_split: str,
@@ -229,6 +242,53 @@ def merge_sources(
             "normalized_images": normalized_images,
         }
 
+    negative_source_counts: dict[str, dict[str, int]] = {}
+    for source_name, dataset_dir in negative_sources:
+        ann_path = dataset_dir / "annotations" / f"instances_{input_split}.json"
+        payload = read_json(ann_path)
+        image_count = 0
+        skipped_with_boxes = 0
+        normalized_images = 0
+        annotations_by_image: dict[int, int] = {}
+        for annotation in payload.get("annotations", []):
+            annotations_by_image[int(annotation["image_id"])] = annotations_by_image.get(int(annotation["image_id"]), 0) + 1
+
+        for image in payload.get("images", []):
+            if annotations_by_image.get(int(image["id"]), 0) > 0:
+                skipped_with_boxes += 1
+                continue
+
+            output_file_name = f"{source_name}_{image['file_name']}"
+            if link_or_copy(
+                source_image_path(dataset_dir, input_split, str(image["file_name"])),
+                output_images_dir / output_file_name,
+                copy_images,
+                normalize_images,
+                int(image["width"]),
+                int(image["height"]),
+            ):
+                normalized_images += 1
+
+            merged_images.append(
+                {
+                    **image,
+                    "id": next_image_id,
+                    "file_name": output_file_name,
+                    "source_dataset": source_name,
+                    "source_file_name": image["file_name"],
+                    "negative_only": True,
+                }
+            )
+            next_image_id += 1
+            image_count += 1
+
+        negative_source_counts[source_name] = {
+            "images": image_count,
+            "boxes": 0,
+            "skipped_images_with_boxes": skipped_with_boxes,
+            "normalized_images": normalized_images,
+        }
+
     write_json(
         output_dir / "annotations" / f"instances_{output_split}.json",
         {
@@ -237,7 +297,12 @@ def merge_sources(
             "categories": [{"id": 0, "name": "mosquito", "supercategory": "insect"}],
         },
     )
-    return {"images": len(merged_images), "boxes": len(merged_annotations), "sources": source_counts}
+    return {
+        "images": len(merged_images),
+        "boxes": len(merged_annotations),
+        "positive_sources": source_counts,
+        "negative_sources": negative_source_counts,
+    }
 
 
 def main() -> None:
@@ -245,6 +310,8 @@ def main() -> None:
     output_dir = args.output_dir.resolve()
     train_sources = [parse_source(value) for value in args.train_source]
     val_sources = [parse_source(value) for value in args.val_source]
+    train_negative_sources = [parse_source(value) for value in args.train_negative_source]
+    val_negative_sources = [parse_source(value) for value in args.val_negative_source]
 
     if args.clean and output_dir.exists():
         shutil.rmtree(output_dir)
@@ -260,9 +327,12 @@ def main() -> None:
         "min_box_size": args.min_box_size,
         "train_sources": {name: str(path) for name, path in train_sources},
         "val_sources": {name: str(path) for name, path in val_sources},
+        "train_negative_sources": {name: str(path) for name, path in train_negative_sources},
+        "val_negative_sources": {name: str(path) for name, path in val_negative_sources},
         "splits": {
             "train": merge_sources(
                 train_sources,
+                train_negative_sources,
                 output_dir,
                 "train2017",
                 "train2017",
@@ -273,6 +343,7 @@ def main() -> None:
             ),
             "val": merge_sources(
                 val_sources,
+                val_negative_sources,
                 output_dir,
                 "val2017",
                 "val2017",

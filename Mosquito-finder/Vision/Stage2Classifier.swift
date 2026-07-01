@@ -102,20 +102,11 @@ class Stage2Classifier: ObservableObject {
             let config = MLModelConfiguration()
             config.computeUnits = .all
 
-            let visionModel: VNCoreMLModel
-            if let detectorModelURL = bundledDetectorModelURL(for: modelMode) {
-                let detectorModel = try MLModel(contentsOf: detectorModelURL, configuration: config)
-                visionModel = try VNCoreMLModel(for: detectorModel)
-            } else if modelMode.isDetectorMode {
-                print("检测器模型未找到，当前模式不执行确认: \(modelMode.displayName)")
-                isModelLoaded = false
-                classificationRequest = nil
-                loadedModelMode = nil
-                return
-            } else {
-                let model = try MosquitoClassifier(configuration: config)
-                visionModel = try VNCoreMLModel(for: model.model)
-            }
+            // Stage 2 is the precision gate for every profile. Detector profiles
+            // use D-FINE/YOLOX only for full-frame candidate search, then confirm
+            // an enlarged ROI with the dedicated mosquito classifier.
+            let model = try MosquitoClassifier(configuration: config)
+            let visionModel = try VNCoreMLModel(for: model.model)
             
             classificationRequest = VNCoreMLRequest(model: visionModel) { _, error in
                 if let error = error {

@@ -86,6 +86,13 @@ data/processed/
 └── kaggle_coco_single_class/   # COCO train2017/val2017 layout for D-FINE and YOLOX smoke runs.
 ```
 
+Hard-negative data engineering was added on 2026-06-28:
+
+- `training/build_hard_negative_coco.py` turns mosquito-free image folders into COCO datasets with empty annotations.
+- `training/build_real_detector_mix.py` now accepts `--train-negative-source` and `--val-negative-source` so detector training can include no-box negative frames.
+- `training/build_classifier_crops_from_detector.py` can consume the mixed COCO output and generate Stage 2 hard-negative ROI crops from negative-only images.
+- Full usage and smoke-run counts are recorded in `training/DATA_ENGINEERING_PIPELINE.md`.
+
 Kaggle single-class mapping:
 
 - All original species class IDs are mapped to class `0: mosquito`.

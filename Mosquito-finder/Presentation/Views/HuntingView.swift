@@ -479,7 +479,7 @@ struct HuntingView: View {
                     Text("Mosquito Finder")
                         .font(.system(size: 36, weight: .bold, design: .default))
                         .foregroundColor(.white)
-                    Text("Guided two-stage mosquito search")
+                    Text("Guided candidate search and close-up confirmation")
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(.white.opacity(0.68))
                         .multilineTextAlignment(.center)
@@ -488,9 +488,9 @@ struct HuntingView: View {
                 Spacer().frame(height: 38)
 
                 VStack(spacing: 10) {
-                    featureRow(icon: "viewfinder", color: .green, text: "Scan wide areas slowly")
-                    featureRow(icon: "arrow.up.left.and.arrow.down.right", color: .orange, text: "Follow guidance to move closer")
-                    featureRow(icon: "checkmark.seal.fill", color: .cyan, text: "Confirm with a close-up crop")
+                    featureRow(icon: "viewfinder", color: .green, text: "Search likely hiding places slowly")
+                    featureRow(icon: "arrow.up.left.and.arrow.down.right", color: .orange, text: "Move closer only when a candidate is stable")
+                    featureRow(icon: "checkmark.seal.fill", color: .cyan, text: "Confirm with a high-resolution crop")
                 }
                 .padding(.horizontal, 36)
 
@@ -759,10 +759,10 @@ private struct MissionGuideOverlay: View {
                 }
 
                 VStack(spacing: 12) {
-                    guideStep(icon: "radar", title: "Scan", body: "Sweep slowly across walls and corners.")
-                    guideStep(icon: "scope", title: "Lock", body: "Keep the target inside the reticle.")
-                    guideStep(icon: "plus.magnifyingglass", title: "Confirm", body: "Zoom in or move closer until lock turns red.")
-                    guideStep(icon: "bolt.fill", title: "Finish", body: "Red lock means confirmed. Finish the target.")
+                    guideStep(icon: "radar", title: "Search", body: "Sweep slowly across cloth, bags, cabinet edges, walls, and corners.")
+                    guideStep(icon: "scope", title: "Candidate", body: "Keep stable candidate areas inside the reticle.")
+                    guideStep(icon: "plus.magnifyingglass", title: "Close-up", body: "Zoom in or move closer before final recognition.")
+                    guideStep(icon: "checkmark.seal.fill", title: "Confirm", body: "Only the close-up stage decides whether it is a mosquito.")
                 }
 
                 HStack(spacing: 12) {
