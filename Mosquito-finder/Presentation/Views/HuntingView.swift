@@ -2,6 +2,21 @@
 import SwiftUI
 import AVFoundation
 
+private enum SearchExperienceMode: String, CaseIterable, Identifiable {
+    case handheld
+    case stationary
+
+    var id: String { rawValue }
+
+    var titleKey: LocalizedStringKey {
+        self == .handheld ? "Handheld scan" : "Tripod watch"
+    }
+
+    var systemImage: String {
+        self == .handheld ? "iphone.gen3.radiowaves.left.and.right" : "iphone.gen3"
+    }
+}
+
 // MARK: - Main View
 
 struct HuntingView: View {
@@ -9,6 +24,9 @@ struct HuntingView: View {
     @AppStorage("appLanguage") private var appLanguage: String = ""
     @AppStorage("hasSeenHuntingGuide") private var hasSeenHuntingGuide = false
     @State private var showMissionGuide = false
+    @State private var selectedExperience: SearchExperienceMode = .handheld
+    @State private var showStationaryDetection = false
+    @State private var startHandheldAfterStationary = false
 
     private var currentLocale: Locale {
         switch appLanguage {
@@ -32,6 +50,10 @@ struct HuntingView: View {
 
     private func toggleLanguage() {
         appLanguage = isChineseActive ? "en" : "zh-Hans"
+    }
+
+    private var startActionTitle: LocalizedStringKey {
+        selectedExperience == .stationary ? "Start monitoring" : "Start scanning"
     }
 
     var body: some View {
@@ -173,6 +195,26 @@ struct HuntingView: View {
         .preferredColorScheme(.dark)
         .statusBarHidden()
         .environment(\.locale, currentLocale)
+        .fullScreenCover(isPresented: $showStationaryDetection, onDismiss: {
+            guard startHandheldAfterStationary else { return }
+            startHandheldAfterStationary = false
+            // Allow the fixed camera session to finish stopping before the
+            // handheld session claims the same physical camera.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                viewModel.startHunting()
+            }
+        }) {
+            StationaryDetectionView(
+                onClose: {
+                    showStationaryDetection = false
+                },
+                onContinueCloseUp: {
+                    startHandheldAfterStationary = true
+                    showStationaryDetection = false
+                }
+            )
+            .environment(\.locale, currentLocale)
+        }
     }
 
     // MARK: - Top Status Bar
@@ -485,28 +527,43 @@ struct HuntingView: View {
                         .multilineTextAlignment(.center)
                 }
 
-                Spacer().frame(height: 38)
+                Spacer().frame(height: 28)
+
+                experiencePicker
+                    .padding(.horizontal, 28)
+
+                Spacer().frame(height: 24)
 
                 VStack(spacing: 10) {
-                    featureRow(icon: "viewfinder", color: .green, text: "Search likely hiding places slowly")
-                    featureRow(icon: "arrow.up.left.and.arrow.down.right", color: .orange, text: "Move closer only when a candidate is stable")
-                    featureRow(icon: "checkmark.seal.fill", color: .cyan, text: "Confirm with a high-resolution crop")
+                    if selectedExperience == .handheld {
+                        featureRow(icon: "viewfinder", color: .green, text: "Search likely hiding places slowly")
+                        featureRow(icon: "arrow.up.left.and.arrow.down.right", color: .orange, text: "Move closer only when a candidate is stable")
+                        featureRow(icon: "checkmark.seal.fill", color: .cyan, text: "Confirm with a high-resolution crop")
+                    } else {
+                        featureRow(icon: "iphone.gen3", color: .cyan, text: "Keep the phone fixed on a stable support")
+                        featureRow(icon: "point.3.connected.trianglepath.dotted", color: .orange, text: "Track possible flying insects across frames")
+                        featureRow(icon: "mappin.and.ellipse", color: .yellow, text: "Mark a possible landing area before close-up")
+                    }
                 }
                 .padding(.horizontal, 36)
 
-                Spacer().frame(height: 46)
+                Spacer().frame(height: 34)
 
                 // 开始按钮
                 Button(action: {
-                    viewModel.startHunting()
-                    if !hasSeenHuntingGuide {
-                        showMissionGuide = true
+                    if selectedExperience == .stationary {
+                        showStationaryDetection = true
+                    } else {
+                        viewModel.startHunting()
+                        if !hasSeenHuntingGuide {
+                            showMissionGuide = true
+                        }
                     }
                 }) {
                     HStack(spacing: 10) {
-                        Image(systemName: "play.fill")
+                        Image(systemName: selectedExperience == .stationary ? "record.circle" : "play.fill")
                             .font(.system(size: 14, weight: .bold))
-                        Text("Start Hunting")
+                        Text(startActionTitle)
                             .font(.system(size: 17, weight: .bold, design: .default))
                     }
                     .foregroundColor(.black)
@@ -525,7 +582,7 @@ struct HuntingView: View {
                 }
                 .padding(.horizontal, 32)
 
-                Spacer().frame(height: 56)
+                Spacer().frame(height: 36)
 
                 Text("v2.0  ·  TWO-STAGE VISION")
                     .font(.system(size: 10, design: .monospaced))
@@ -533,6 +590,40 @@ struct HuntingView: View {
                     .padding(.bottom, 20)
             }
         }
+    }
+
+    private var experiencePicker: some View {
+        HStack(spacing: 8) {
+            ForEach(SearchExperienceMode.allCases) { mode in
+                Button {
+                    withAnimation(.easeInOut(duration: 0.18)) {
+                        selectedExperience = mode
+                    }
+                } label: {
+                    HStack(spacing: 7) {
+                        Image(systemName: mode.systemImage)
+                            .font(.system(size: 14, weight: .semibold))
+                        Text(mode.titleKey)
+                            .font(.system(size: 13, weight: .semibold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.82)
+                    }
+                    .foregroundColor(selectedExperience == mode ? .black : .white.opacity(0.66))
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 44)
+                    .background(selectedExperience == mode ? Color.white : Color.white.opacity(0.07))
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .stroke(Color.white.opacity(selectedExperience == mode ? 0 : 0.12), lineWidth: 1)
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(4)
+        .background(Color.white.opacity(0.045))
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 
     private func featureRow(icon: String, color: Color, text: LocalizedStringKey) -> some View {

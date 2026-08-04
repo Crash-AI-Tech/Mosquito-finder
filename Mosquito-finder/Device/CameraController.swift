@@ -11,12 +11,19 @@ import Combine
 
 /// 相机控制器
 class CameraController: NSObject, ObservableObject {
+
+    enum CaptureProfile {
+        case handheld
+        case stationaryFlight
+    }
     
     // MARK: - Published Properties
     
     @Published var isRunning = false
     @Published var currentZoomFactor: CGFloat = 1.0
     @Published var isFocusLocked = false
+    @Published var isCaptureLocked = false
+    @Published var activeFramesPerSecond: Double = 0
     @Published var error: CameraError?
     
     // MARK: - Public Properties
@@ -35,6 +42,12 @@ class CameraController: NSObject, ObservableObject {
     public private(set) var captureDevice: AVCaptureDevice?
     private let sessionQueue = DispatchQueue(label: "com.mosquitofinder.camera")
     private var isConfigured = false
+    private let captureProfile: CaptureProfile
+
+    init(captureProfile: CaptureProfile = .handheld) {
+        self.captureProfile = captureProfile
+        super.init()
+    }
     
     // MARK: - Camera Error
     
@@ -212,6 +225,62 @@ class CameraController: NSObject, ObservableObject {
         }
     }
 
+    /// 固定监测校准完成后锁定会制造伪运动的相机自动参数。
+    func lockStationaryCapture() {
+        guard captureProfile == .stationaryFlight, let device = captureDevice else { return }
+
+        sessionQueue.async {
+            do {
+                try device.lockForConfiguration()
+                if device.isFocusModeSupported(.locked) {
+                    device.focusMode = .locked
+                }
+                if device.isExposureModeSupported(.locked) {
+                    device.exposureMode = .locked
+                }
+                if device.isWhiteBalanceModeSupported(.locked) {
+                    device.whiteBalanceMode = .locked
+                }
+                device.unlockForConfiguration()
+
+                DispatchQueue.main.async {
+                    self.isFocusLocked = true
+                    self.isCaptureLocked = true
+                }
+            } catch {
+                print("固定监测参数锁定失败: \(error)")
+            }
+        }
+    }
+
+    /// 手机被移动后恢复自动参数，等待画面稳定后重新校准。
+    func unlockStationaryCapture() {
+        guard captureProfile == .stationaryFlight, let device = captureDevice else { return }
+
+        sessionQueue.async {
+            do {
+                try device.lockForConfiguration()
+                if device.isFocusModeSupported(.continuousAutoFocus) {
+                    device.focusMode = .continuousAutoFocus
+                }
+                if device.isExposureModeSupported(.continuousAutoExposure) {
+                    device.exposureMode = .continuousAutoExposure
+                }
+                if device.isWhiteBalanceModeSupported(.continuousAutoWhiteBalance) {
+                    device.whiteBalanceMode = .continuousAutoWhiteBalance
+                }
+                device.unlockForConfiguration()
+
+                DispatchQueue.main.async {
+                    self.isFocusLocked = false
+                    self.isCaptureLocked = false
+                }
+            } catch {
+                print("固定监测参数解锁失败: \(error)")
+            }
+        }
+    }
+
     /// 抓取当前帧快照（用于冻结画面）
     /// 自动根据 buffer 尺寸选择方向：横屏 buffer → .right（显示为竖屏），竖屏 → .up
     func captureSnapshot() -> UIImage? {
@@ -232,15 +301,12 @@ class CameraController: NSObject, ObservableObject {
         guard !isConfigured else { return true }
         
         captureSession.beginConfiguration()
-        captureSession.sessionPreset = .hd1920x1080
+        captureSession.sessionPreset = captureProfile == .stationaryFlight ? .inputPriority : .hd1920x1080
         
         // 1. 发现最佳摄像头设备 (优先三摄 > 双摄 > 广角)
-        let deviceTypes: [AVCaptureDevice.DeviceType] = [
-            .builtInTripleCamera,
-            .builtInDualWideCamera,
-            .builtInDualCamera,
-            .builtInWideAngleCamera
-        ]
+        let deviceTypes: [AVCaptureDevice.DeviceType] = captureProfile == .stationaryFlight
+            ? [.builtInWideAngleCamera]
+            : [.builtInTripleCamera, .builtInDualWideCamera, .builtInDualCamera, .builtInWideAngleCamera]
         
         let discoverySession = AVCaptureDevice.DiscoverySession(
             deviceTypes: deviceTypes,
@@ -257,6 +323,10 @@ class CameraController: NSObject, ObservableObject {
         }
         
         self.captureDevice = device
+
+        if captureProfile == .stationaryFlight {
+            configureStationaryFormat(for: device)
+        }
         
         do {
             let input = try AVCaptureDeviceInput(device: device)
@@ -283,7 +353,9 @@ class CameraController: NSObject, ObservableObject {
         let output = AVCaptureVideoDataOutput()
         output.alwaysDiscardsLateVideoFrames = true
         output.videoSettings = [
-            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
+            kCVPixelBufferPixelFormatTypeKey as String: captureProfile == .stationaryFlight
+                ? kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
+                : kCVPixelFormatType_32BGRA
         ]
         output.setSampleBufferDelegate(self, queue: sessionQueue)
         
@@ -296,12 +368,74 @@ class CameraController: NSObject, ObservableObject {
                 if connection.isVideoRotationAngleSupported(90) {
                     connection.videoRotationAngle = 90
                 }
+                if captureProfile == .stationaryFlight,
+                   connection.isVideoStabilizationSupported {
+                    connection.preferredVideoStabilizationMode = .off
+                }
             }
         }
         
         captureSession.commitConfiguration()
         isConfigured = true
         return true
+    }
+
+    private func configureStationaryFormat(for device: AVCaptureDevice) {
+        let targetWidth: Int32 = 1920
+        let targetHeight: Int32 = 1080
+        let requestedFPS = 60.0
+
+        let candidates = device.formats.compactMap { format -> (AVCaptureDevice.Format, Double, Int32, Int32)? in
+            let dimensions = CMVideoFormatDescriptionGetDimensions(format.formatDescription)
+            let maxFPS = format.videoSupportedFrameRateRanges.map(\.maxFrameRate).max() ?? 0
+            guard dimensions.width >= targetWidth,
+                  dimensions.height >= targetHeight,
+                  maxFPS >= 30 else {
+                return nil
+            }
+            return (format, maxFPS, dimensions.width, dimensions.height)
+        }
+
+        let selected = candidates.sorted { lhs, rhs in
+            let lhsExact = lhs.2 == targetWidth && lhs.3 == targetHeight
+            let rhsExact = rhs.2 == targetWidth && rhs.3 == targetHeight
+            if lhsExact != rhsExact { return lhsExact }
+            let lhsSupportsRequested = lhs.1 >= requestedFPS
+            let rhsSupportsRequested = rhs.1 >= requestedFPS
+            if lhsSupportsRequested != rhsSupportsRequested { return lhsSupportsRequested }
+            return Int64(lhs.2) * Int64(lhs.3) < Int64(rhs.2) * Int64(rhs.3)
+        }.first
+
+        guard let selected else { return }
+
+        do {
+            try device.lockForConfiguration()
+            device.activeFormat = selected.0
+            let fps = min(requestedFPS, selected.1)
+            let duration = CMTime(value: 1, timescale: CMTimeScale(fps.rounded()))
+            device.activeVideoMinFrameDuration = duration
+            device.activeVideoMaxFrameDuration = duration
+            device.videoZoomFactor = 1.0
+            if device.isFocusPointOfInterestSupported {
+                device.focusPointOfInterest = CGPoint(x: 0.5, y: 0.5)
+            }
+            if device.isFocusModeSupported(.continuousAutoFocus) {
+                device.focusMode = .continuousAutoFocus
+            }
+            if device.isExposureModeSupported(.continuousAutoExposure) {
+                device.exposureMode = .continuousAutoExposure
+            }
+            if device.isWhiteBalanceModeSupported(.continuousAutoWhiteBalance) {
+                device.whiteBalanceMode = .continuousAutoWhiteBalance
+            }
+            device.unlockForConfiguration()
+
+            DispatchQueue.main.async {
+                self.activeFramesPerSecond = fps
+            }
+        } catch {
+            print("固定监测相机格式配置失败: \(error)")
+        }
     }
 }
 

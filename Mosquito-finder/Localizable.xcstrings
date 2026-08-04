@@ -2140,6 +2140,336 @@
           }
         }
       }
+    },
+    "Guided candidate search and close-up confirmation": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "引导式候选搜索与近距离确认"
+          }
+        }
+      }
+    },
+    "Search likely hiding places slowly": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "缓慢搜索可能藏有蚊子的区域"
+          }
+        }
+      }
+    },
+    "Move closer only when a candidate is stable": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "候选目标稳定后再靠近"
+          }
+        }
+      }
+    },
+    "Confirm with a high-resolution crop": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通过高清局部画面进行确认"
+          }
+        }
+      }
+    },
+    "Handheld scan": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手持扫描"
+          }
+        }
+      }
+    },
+    "Tripod watch": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "固定监测"
+          }
+        }
+      }
+    },
+    "Keep the phone fixed on a stable support": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将手机固定在稳固支架上"
+          }
+        }
+      }
+    },
+    "Track possible flying insects across frames": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跨帧追踪疑似飞虫"
+          }
+        }
+      }
+    },
+    "Mark a possible landing area before close-up": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标记可能落点，再进行近距离确认"
+          }
+        }
+      }
+    },
+    "Start scanning": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始扫描"
+          }
+        }
+      }
+    },
+    "Start monitoring": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始监测"
+          }
+        }
+      }
+    },
+    "Mount the phone": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "固定手机"
+          }
+        }
+      }
+    },
+    "Calibrating the room": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在校准房间画面"
+          }
+        }
+      }
+    },
+    "Watching for flight": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在监测飞行目标"
+          }
+        }
+      }
+    },
+    "Motion detected": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检测到运动"
+          }
+        }
+      }
+    },
+    "Tracking a possible flying insect": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在追踪疑似飞虫"
+          }
+        }
+      }
+    },
+    "Camera movement detected": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检测到相机移动"
+          }
+        }
+      }
+    },
+    "Possible landing area": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可能落点区域"
+          }
+        }
+      }
+    },
+    "Checking the landing area": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在检查落点区域"
+          }
+        }
+      }
+    },
+    "Place the phone on a stable support with a clear view of the room.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将手机固定好，并确保摄像头清楚覆盖房间。"
+          }
+        }
+      }
+    },
+    "Keep people, curtains, and the phone still while the background is learned.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "学习背景时，请保持手机、人员和窗帘静止。"
+          }
+        }
+      }
+    },
+    "The app is looking for small moving objects, not declaring a mosquito yet.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App 正在寻找移动小目标，此时不会直接判断为蚊子。"
+          }
+        }
+      }
+    },
+    "A small movement is being checked across several frames.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在通过连续多帧检查这次微小运动。"
+          }
+        }
+      }
+    },
+    "Keep the scene unchanged while the possible insect remains in view.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "疑似飞虫仍在画面中，请保持环境不变。"
+          }
+        }
+      }
+    },
+    "Do not touch the phone. Background calibration will restart automatically.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请勿触碰手机，背景校准将自动重新开始。"
+          }
+        }
+      }
+    },
+    "The movement stopped near this area. Move closer before final identification.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "运动在此区域附近停止，请靠近后再进行最终识别。"
+          }
+        }
+      }
+    },
+    "The Stage 2 classifier is checking the last visible area.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第二阶段正在检查目标最后出现的区域。"
+          }
+        }
+      }
+    },
+    "The landing area also passed the mosquito classifier.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该落点区域也通过了蚊子分类器确认。"
+          }
+        }
+      }
+    },
+    "Close": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        }
+      }
+    },
+    "Recalibrate": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新校准"
+          }
+        }
+      }
+    },
+    "Continue with close-up scan": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续近距离扫描"
+          }
+        }
+      }
+    },
+    "False alarm": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "误报"
+          }
+        }
+      }
+    },
+    "Resume watch": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续监测"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
